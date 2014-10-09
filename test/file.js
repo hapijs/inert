@@ -3,6 +3,7 @@
 var ChildProcess = require('child_process');
 var Fs = require('fs');
 var Os = require('os');
+var Path = require('path');
 var Boom = require('boom');
 var Hapi = require('hapi');
 var Hoek = require('hoek');
@@ -38,7 +39,7 @@ describe('handler()', function () {
         var server = provisionServer({ files: { relativeTo: __dirname } });
         var handler = function (request, reply) {
 
-            reply.file('../package.json').code(499);
+            reply(Inert.file.response('../package.json', null, request)).code(499);
         };
 
         server.route({ method: 'GET', path: '/file', handler: handler });
@@ -59,7 +60,7 @@ describe('handler()', function () {
         var server = provisionServer();
         var handler = function (request, reply) {
 
-            reply.file('../package.json');
+            reply(Inert.file.response('../package.json', null, request));
         };
 
         server.route({ method: 'GET', path: '/file', handler: handler, config: { files: { relativeTo: __dirname } } });
@@ -166,7 +167,7 @@ describe('handler()', function () {
         var server = provisionServer({ files: { relativeTo: __dirname } });
         var handler = function (request, reply) {
 
-            reply.file(__dirname + '/../package.json', { mode: 'attachment' });
+            reply(Inert.file.response(__dirname + '/../package.json', { mode: 'attachment' }, request));
         };
 
         server.route({ method: 'GET', path: '/file', handler: handler });
@@ -186,7 +187,7 @@ describe('handler()', function () {
         var server = provisionServer({ files: { relativeTo: __dirname } });
         var handler = function (request, reply) {
 
-            reply.file(__dirname + '/../package.json', { mode: 'attachment', filename: 'attachment.json' });
+            reply(Inert.file.response(__dirname + '/../package.json', { mode: 'attachment', filename: 'attachment.json' }, request));
         };
 
         server.route({ method: 'GET', path: '/file', handler: handler });
@@ -206,7 +207,7 @@ describe('handler()', function () {
         var server = provisionServer({ files: { relativeTo: __dirname } });
         var handler = function (request, reply) {
 
-            reply.file(__dirname + '/../package.json', { mode: 'inline' });
+            reply(Inert.file.response(__dirname + '/../package.json', { mode: 'inline' }, request));
         };
 
         server.route({ method: 'GET', path: '/file', handler: handler });
@@ -226,7 +227,7 @@ describe('handler()', function () {
         var server = provisionServer({ files: { relativeTo: __dirname } });
         var handler = function (request, reply) {
 
-            reply.file(__dirname + '/../package.json', { mode: 'inline', filename: 'attachment.json' });
+            reply(Inert.file.response(__dirname + '/../package.json', { mode: 'inline', filename: 'attachment.json' }, request));
         };
 
         server.route({ method: 'GET', path: '/file', handler: handler });
@@ -305,7 +306,7 @@ describe('handler()', function () {
         var server = provisionServer({ files: { relativeTo: '.' } });
         var relativeHandler = function (request, reply) {
 
-            reply.file('./package.json');
+            reply(Inert.file.response('./package.json', null, request));
         };
 
         server.route({ method: 'GET', path: '/relativefile', handler: relativeHandler });
@@ -350,7 +351,7 @@ describe('handler()', function () {
         var server = provisionServer({ files: { relativeTo: __dirname } });
         var handler = function (request, reply) {
 
-            reply.file('../Makefile').type('application/example');
+            reply(Inert.file.response('../Makefile', null, request)).type('application/example');
         };
 
         server.route({ method: 'GET', path: '/file', handler: handler });
@@ -689,7 +690,7 @@ describe('handler()', function () {
         var server = provisionServer({ files: { relativeTo: __dirname } });
         var handler = function (request, reply) {
 
-            reply.file(__dirname + '/../package.json');
+            reply(Inert.file.response(__dirname + '/../package.json', null, request));
         };
 
         server.route({ method: 'GET', path: '/file', handler: handler });
@@ -709,7 +710,7 @@ describe('handler()', function () {
         var server = provisionServer({ files: { relativeTo: __dirname } });
         var handler = function (request, reply) {
 
-            reply.file(__dirname + '/file/image.png');
+            reply(Inert.file.response(__dirname + '/file/image.png', null, request));
         };
 
         server.route({ method: 'GET', path: '/file', handler: handler });
@@ -729,7 +730,7 @@ describe('handler()', function () {
         var server = provisionServer({ files: { relativeTo: __dirname } });
         var handler = function (request, reply) {
 
-            reply.file(__dirname + '/../package.json');
+            reply(Inert.file.response(__dirname + '/../package.json', null, request));
         };
 
         server.route({ method: 'GET', path: '/file', handler: handler });
