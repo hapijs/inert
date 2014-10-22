@@ -1,7 +1,7 @@
 {
   "name": "inert",
   "description": "Static file and directory handlers for hapi.js",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "repository": "git://github.com/hapijs/inert",
   "main": "index",
   "keywords": [
@@ -18,7 +18,8 @@
     "hoek": "2.x.x",
     "items": "1.x.x",
     "joi": "^4.7.x",
-    "mimos": "1.x.x"
+    "mimos": "1.x.x",
+    "lru-cache": "2.5.x"
   },
   "devDependencies": {
     "hapi": "7.x.x",
