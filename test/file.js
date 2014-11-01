@@ -5,6 +5,7 @@ var Fs = require('fs');
 var Os = require('os');
 var Path = require('path');
 var Boom = require('boom');
+var Code = require('code');
 var Hapi = require('hapi');
 var Hoek = require('hoek');
 var Inert = require('..');
@@ -21,22 +22,23 @@ var internals = {};
 var lab = exports.lab = Lab.script();
 var describe = lab.describe;
 var it = lab.it;
-var expect = Lab.expect;
+var expect = Code.expect;
 
 
 describe('handler()', function () {
 
     var count = 0;
-    var provisionServer = function (options, name) {
+    var provisionServer = function (relativeTo, etagsCacheMaxSize) {
 
-        var server = new Hapi.Server(name || 'domain' + (++count).toString(), options);
+        var server = new Hapi.Pack({ files: { etagsCacheMaxSize: etagsCacheMaxSize } });
+        server.connection('domain' + (++count).toString(), { files: { relativeTo: relativeTo } });
         server.handler('fileTest', Inert.file.handler);
         return server;
     };
 
     it('returns a file in the response with the correct headers', function (done) {
 
-        var server = provisionServer({ files: { relativeTo: __dirname } });
+        var server = provisionServer(__dirname);
         var handler = function (request, reply) {
 
             reply(Inert.file.response('../package.json', null, request)).code(499);
@@ -49,8 +51,8 @@ describe('handler()', function () {
             expect(res.statusCode).to.equal(499);
             expect(res.payload).to.contain('hapi');
             expect(res.headers['content-type']).to.equal('application/json; charset=utf-8');
-            expect(res.headers['content-length']).to.exist;
-            expect(res.headers['content-disposition']).to.not.exist;
+            expect(res.headers['content-length']).to.exist();
+            expect(res.headers['content-disposition']).to.not.exist();
             done();
         });
     });
@@ -81,22 +83,22 @@ describe('handler()', function () {
 
             expect(res.payload).to.contain('hapi');
             expect(res.headers['content-type']).to.equal('application/json; charset=utf-8');
-            expect(res.headers['content-length']).to.exist;
-            expect(res.headers['content-disposition']).to.not.exist;
+            expect(res.headers['content-length']).to.exist();
+            expect(res.headers['content-disposition']).to.not.exist();
             done();
         });
     });
 
     it('returns a file in the response with the inline content-disposition header when using route config', function (done) {
 
-        var server = provisionServer({ files: { relativeTo: './' } });
+        var server = provisionServer('./');
         server.route({ method: 'GET', path: '/', handler: { fileTest: { path: './package.json', mode: 'inline' } } });
 
         server.inject('/', function (res) {
 
             expect(res.payload).to.contain('hapi');
             expect(res.headers['content-type']).to.equal('application/json; charset=utf-8');
-            expect(res.headers['content-length']).to.exist;
+            expect(res.headers['content-length']).to.exist();
             expect(res.headers['content-disposition']).to.equal('inline; filename=package.json');
             done();
         });
@@ -104,14 +106,14 @@ describe('handler()', function () {
 
     it('returns a file in the response with the inline content-disposition header when using route config and overriding filename', function (done) {
 
-        var server = provisionServer({ files: { relativeTo: './' } });
+        var server = provisionServer('./');
         server.route({ method: 'GET', path: '/', handler: { fileTest: { path: './package.json', mode: 'inline', filename: 'attachment.json' } } });
 
         server.inject('/', function (res) {
 
             expect(res.payload).to.contain('hapi');
             expect(res.headers['content-type']).to.equal('application/json; charset=utf-8');
-            expect(res.headers['content-length']).to.exist;
+            expect(res.headers['content-length']).to.exist();
             expect(res.headers['content-disposition']).to.equal('inline; filename=attachment.json');
             done();
         });
@@ -126,7 +128,7 @@ describe('handler()', function () {
 
             expect(res.payload).to.contain('hapi');
             expect(res.headers['content-type']).to.equal('application/json; charset=utf-8');
-            expect(res.headers['content-length']).to.exist;
+            expect(res.headers['content-length']).to.exist();
             expect(res.headers['content-disposition']).to.equal('attachment; filename=package.json');
             done();
         });
@@ -141,7 +143,7 @@ describe('handler()', function () {
 
             expect(res.payload).to.contain('hapi');
             expect(res.headers['content-type']).to.equal('application/json; charset=utf-8');
-            expect(res.headers['content-length']).to.exist;
+            expect(res.headers['content-length']).to.exist();
             expect(res.headers['content-disposition']).to.equal('attachment; filename=attachment.json');
             done();
         });
@@ -156,15 +158,15 @@ describe('handler()', function () {
 
             expect(res.payload).to.contain('hapi');
             expect(res.headers['content-type']).to.equal('application/json; charset=utf-8');
-            expect(res.headers['content-length']).to.exist;
-            expect(res.headers['content-disposition']).to.not.exist;
+            expect(res.headers['content-length']).to.exist();
+            expect(res.headers['content-disposition']).to.not.exist();
             done();
         });
     });
 
     it('returns a file with correct headers when using attachment mode', function (done) {
 
-        var server = provisionServer({ files: { relativeTo: __dirname } });
+        var server = provisionServer(__dirname);
         var handler = function (request, reply) {
 
             reply(Inert.file.response(__dirname + '/../package.json', { mode: 'attachment' }, request));
@@ -176,7 +178,7 @@ describe('handler()', function () {
 
             expect(res.payload).to.contain('hapi');
             expect(res.headers['content-type']).to.equal('application/json; charset=utf-8');
-            expect(res.headers['content-length']).to.exist;
+            expect(res.headers['content-length']).to.exist();
             expect(res.headers['content-disposition']).to.equal('attachment; filename=package.json');
             done();
         });
@@ -184,7 +186,7 @@ describe('handler()', function () {
 
     it('returns a file with correct headers when using attachment mode and overriding the filename', function (done) {
 
-        var server = provisionServer({ files: { relativeTo: __dirname } });
+        var server = provisionServer(__dirname);
         var handler = function (request, reply) {
 
             reply(Inert.file.response(__dirname + '/../package.json', { mode: 'attachment', filename: 'attachment.json' }, request));
@@ -196,7 +198,7 @@ describe('handler()', function () {
 
             expect(res.payload).to.contain('hapi');
             expect(res.headers['content-type']).to.equal('application/json; charset=utf-8');
-            expect(res.headers['content-length']).to.exist;
+            expect(res.headers['content-length']).to.exist();
             expect(res.headers['content-disposition']).to.equal('attachment; filename=attachment.json');
             done();
         });
@@ -204,7 +206,7 @@ describe('handler()', function () {
 
     it('returns a file with correct headers when using inline mode', function (done) {
 
-        var server = provisionServer({ files: { relativeTo: __dirname } });
+        var server = provisionServer(__dirname);
         var handler = function (request, reply) {
 
             reply(Inert.file.response(__dirname + '/../package.json', { mode: 'inline' }, request));
@@ -216,7 +218,7 @@ describe('handler()', function () {
 
             expect(res.payload).to.contain('hapi');
             expect(res.headers['content-type']).to.equal('application/json; charset=utf-8');
-            expect(res.headers['content-length']).to.exist;
+            expect(res.headers['content-length']).to.exist();
             expect(res.headers['content-disposition']).to.equal('inline; filename=package.json');
             done();
         });
@@ -224,7 +226,7 @@ describe('handler()', function () {
 
     it('returns a file with correct headers when using inline mode and overriding filename', function (done) {
 
-        var server = provisionServer({ files: { relativeTo: __dirname } });
+        var server = provisionServer(__dirname);
         var handler = function (request, reply) {
 
             reply(Inert.file.response(__dirname + '/../package.json', { mode: 'inline', filename: 'attachment.json' }, request));
@@ -236,7 +238,7 @@ describe('handler()', function () {
 
             expect(res.payload).to.contain('hapi');
             expect(res.headers['content-type']).to.equal('application/json; charset=utf-8');
-            expect(res.headers['content-length']).to.exist;
+            expect(res.headers['content-length']).to.exist();
             expect(res.headers['content-disposition']).to.equal('inline; filename=attachment.json');
             done();
         });
@@ -244,7 +246,7 @@ describe('handler()', function () {
 
     it('returns a 404 when the file is not found', function (done) {
 
-        var server = provisionServer({ files: { relativeTo: '/no/such/path/x1' } });
+        var server = provisionServer('/no/such/path/x1');
 
         server.route({ method: 'GET', path: '/filenotfound', handler: { fileTest: 'nopes' } });
 
@@ -270,14 +272,14 @@ describe('handler()', function () {
 
     it('returns a file using the build-in handler config', function (done) {
 
-        var server = provisionServer({ files: { relativeTo: __dirname } });
+        var server = provisionServer(__dirname);
         server.route({ method: 'GET', path: '/staticfile', handler: { fileTest: __dirname + '/../package.json' } });
 
         server.inject('/staticfile', function (res) {
 
             expect(res.payload).to.contain('hapi');
             expect(res.headers['content-type']).to.equal('application/json; charset=utf-8');
-            expect(res.headers['content-length']).to.exist;
+            expect(res.headers['content-length']).to.exist();
             done();
         });
     });
@@ -289,21 +291,21 @@ describe('handler()', function () {
             return '../' + request.params.file;
         };
 
-        var server = provisionServer({ files: { relativeTo: __dirname } });
+        var server = provisionServer(__dirname);
         server.route({ method: 'GET', path: '/filefn/{file}', handler: { fileTest: filenameFn } });
 
         server.inject('/filefn/index.js', function (res) {
 
             expect(res.payload).to.contain('./lib');
             expect(res.headers['content-type']).to.equal('application/javascript; charset=utf-8');
-            expect(res.headers['content-length']).to.exist;
+            expect(res.headers['content-length']).to.exist();
             done();
         });
     });
 
     it('returns a file in the response with the correct headers (relative path)', function (done) {
 
-        var server = provisionServer({ files: { relativeTo: '.' } });
+        var server = provisionServer('.');
         var relativeHandler = function (request, reply) {
 
             reply(Inert.file.response('./package.json', null, request));
@@ -315,21 +317,21 @@ describe('handler()', function () {
 
             expect(res.payload).to.contain('hapi');
             expect(res.headers['content-type']).to.equal('application/json; charset=utf-8');
-            expect(res.headers['content-length']).to.exist;
+            expect(res.headers['content-length']).to.exist();
             done();
         });
     });
 
     it('returns a file using the built-in handler config (relative path)', function (done) {
 
-        var server = provisionServer({ files: { relativeTo: __dirname } });
+        var server = provisionServer(__dirname);
         server.route({ method: 'GET', path: '/relativestaticfile', handler: { fileTest: '../package.json' } });
 
         server.inject('/relativestaticfile', function (res) {
 
             expect(res.payload).to.contain('hapi');
             expect(res.headers['content-type']).to.equal('application/json; charset=utf-8');
-            expect(res.headers['content-length']).to.exist;
+            expect(res.headers['content-length']).to.exist();
             done();
         });
     });
@@ -348,7 +350,7 @@ describe('handler()', function () {
 
     it('returns a file in the response with the correct headers using custom mime type', function (done) {
 
-        var server = provisionServer({ files: { relativeTo: __dirname } });
+        var server = provisionServer(__dirname);
         var handler = function (request, reply) {
 
             reply(Inert.file.response('../Makefile', null, request)).type('application/example');
@@ -365,20 +367,20 @@ describe('handler()', function () {
 
     it('does not cache etags', function (done) {
 
-        var server = provisionServer({ files: { relativeTo: __dirname, etagsCacheMaxSize: 0 } });
+        var server = provisionServer(__dirname, 0);
         server.route({ method: 'GET', path: '/note', handler: { fileTest: './file/note.txt' } });
 
         server.inject('/note', function (res) {
 
             expect(res.statusCode).to.equal(200);
             expect(res.result).to.equal('Test');
-            expect(res.headers.etag).to.not.exist;
+            expect(res.headers.etag).to.not.exist();
 
             server.inject('/note', function (res) {
 
                 expect(res.statusCode).to.equal(200);
                 expect(res.result).to.equal('Test');
-                expect(res.headers.etag).to.not.exist;
+                expect(res.headers.etag).to.not.exist();
                 done();
             });
         });
@@ -386,7 +388,7 @@ describe('handler()', function () {
 
     it('invalidates etags when file changes', function (done) {
 
-        var server = provisionServer({ files: { relativeTo: __dirname } });
+        var server = provisionServer(__dirname);
 
         server.route({ method: 'GET', path: '/note', handler: { fileTest: './file/note.txt' } });
 
@@ -396,7 +398,7 @@ describe('handler()', function () {
 
             expect(res1.statusCode).to.equal(200);
             expect(res1.result).to.equal('Test');
-            expect(res1.headers.etag).to.not.exist;
+            expect(res1.headers.etag).to.not.exist();
 
             // No etag, previously requested
 
@@ -404,7 +406,7 @@ describe('handler()', function () {
 
                 expect(res2.statusCode).to.equal(200);
                 expect(res2.result).to.equal('Test');
-                expect(res2.headers.etag).to.exist;
+                expect(res2.headers.etag).to.exist();
 
                 var etag1 = res2.headers.etag;
 
@@ -416,9 +418,9 @@ describe('handler()', function () {
                 server.inject({ url: '/note', headers: { 'if-none-match': etag1 } }, function (res3) {
 
                     expect(res3.statusCode).to.equal(304);
-                    expect(res3.headers).to.not.have.property('content-length');
-                    expect(res3.headers).to.not.have.property('etag');
-                    expect(res3.headers).to.not.have.property('last-modified');
+                    expect(res3.headers).to.not.include('content-length');
+                    expect(res3.headers).to.not.include('etag');
+                    expect(res3.headers).to.not.include('last-modified');
 
                     var fd = Fs.openSync(__dirname + '/file/note.txt', 'w');
                     Fs.writeSync(fd, new Buffer('Test'), 0, 4);
@@ -430,7 +432,7 @@ describe('handler()', function () {
 
                         expect(res4.statusCode).to.equal(200);
                         expect(res4.result).to.equal('Test');
-                        expect(res4.headers.etag).to.not.exist;
+                        expect(res4.headers.etag).to.not.exist();
 
                         // No etag, previously requested
 
@@ -438,7 +440,7 @@ describe('handler()', function () {
 
                             expect(res5.statusCode).to.equal(200);
                             expect(res5.result).to.equal('Test');
-                            expect(res5.headers.etag).to.exist;
+                            expect(res5.headers.etag).to.exist();
 
                             var etag2 = res5.headers.etag;
                             expect(etag1).to.equal(etag2);
@@ -453,7 +455,7 @@ describe('handler()', function () {
 
                                 expect(res6.statusCode).to.equal(200);
                                 expect(res6.result).to.equal('Test1');
-                                expect(res6.headers.etag).to.not.exist;
+                                expect(res6.headers.etag).to.not.exist();
 
                                 // No etag, previously requested
 
@@ -461,7 +463,7 @@ describe('handler()', function () {
 
                                     expect(res7.statusCode).to.equal(200);
                                     expect(res7.result).to.equal('Test1');
-                                    expect(res7.headers.etag).to.exist;
+                                    expect(res7.headers.etag).to.exist();
 
                                     var etag3 = res7.headers.etag;
                                     expect(etag1).to.not.equal(etag3);
@@ -483,7 +485,7 @@ describe('handler()', function () {
 
                                             expect(res9.statusCode).to.equal(200);
                                             expect(res9.result).to.equal('Test');
-                                            expect(res9.headers.etag).to.exist;
+                                            expect(res9.headers.etag).to.exist();
 
                                             var etag4 = res9.headers.etag;
                                             expect(etag1).to.equal(etag4);
@@ -511,9 +513,9 @@ describe('handler()', function () {
             server.inject({ url: '/file', headers: { 'if-modified-since': last.toUTCString() } }, function (res2) {
 
                 expect(res2.statusCode).to.equal(304);
-                expect(res2.headers).to.not.have.property('content-length');
-                expect(res2.headers).to.not.have.property('etag');
-                expect(res2.headers).to.not.have.property('last-modified');
+                expect(res2.headers).to.not.include('content-length');
+                expect(res2.headers).to.not.include('etag');
+                expect(res2.headers).to.not.include('last-modified');
                 done();
             });
         });
@@ -529,9 +531,9 @@ describe('handler()', function () {
             server.inject({ url: '/file', headers: { 'if-modified-since': res1.headers['last-modified'] } }, function (res2) {
 
                 expect(res2.statusCode).to.equal(304);
-                expect(res2.headers).to.not.have.property('content-length');
-                expect(res2.headers).to.not.have.property('etag');
-                expect(res2.headers).to.not.have.property('last-modified');
+                expect(res2.headers).to.not.include('content-length');
+                expect(res2.headers).to.not.include('etag');
+                expect(res2.headers).to.not.include('last-modified');
                 done();
             });
         });
@@ -547,8 +549,8 @@ describe('handler()', function () {
             server.inject({ method: 'HEAD', url: '/file' }, function (res2) {
 
                 expect(res2.statusCode).to.equal(200);
-                expect(res2.headers).to.have.property('etag');
-                expect(res2.headers).to.have.property('last-modified');
+                expect(res2.headers).to.include('etag');
+                expect(res2.headers).to.include('last-modified');
                 done();
             });
         });
@@ -564,8 +566,8 @@ describe('handler()', function () {
             server.inject('/file', function (res2) {
 
                 expect(res2.statusCode).to.equal(200);
-                expect(res2.headers).to.have.property('etag');
-                expect(res2.headers).to.have.property('last-modified');
+                expect(res2.headers).to.include('etag');
+                expect(res2.headers).to.include('last-modified');
 
                 server.inject({ url: '/file', headers: { 'accept-encoding': 'gzip' } }, function (res3) {
 
@@ -687,7 +689,7 @@ describe('handler()', function () {
 
     it('returns a gzipped file in the response when the request accepts gzip', function (done) {
 
-        var server = provisionServer({ files: { relativeTo: __dirname } });
+        var server = provisionServer(__dirname);
         var handler = function (request, reply) {
 
             reply(Inert.file.response(__dirname + '/../package.json', null, request));
@@ -699,15 +701,15 @@ describe('handler()', function () {
 
             expect(res.headers['content-type']).to.equal('application/json; charset=utf-8');
             expect(res.headers['content-encoding']).to.equal('gzip');
-            expect(res.headers['content-length']).to.not.exist;
-            expect(res.payload).to.exist;
+            expect(res.headers['content-length']).to.not.exist();
+            expect(res.payload).to.exist();
             done();
         });
     });
 
     it('returns a plain file when not compressible', function (done) {
 
-        var server = provisionServer({ files: { relativeTo: __dirname } });
+        var server = provisionServer(__dirname);
         var handler = function (request, reply) {
 
             reply(Inert.file.response(__dirname + '/file/image.png', null, request));
@@ -718,16 +720,16 @@ describe('handler()', function () {
         server.inject({ url: '/file', headers: { 'accept-encoding': 'gzip' } }, function (res) {
 
             expect(res.headers['content-type']).to.equal('image/png');
-            expect(res.headers['content-encoding']).to.not.exist;
+            expect(res.headers['content-encoding']).to.not.exist();
             expect(res.headers['content-length']).to.equal(42010);
-            expect(res.payload).to.exist;
+            expect(res.payload).to.exist();
             done();
         });
     });
 
     it('returns a deflated file in the response when the request accepts deflate', function (done) {
 
-        var server = provisionServer({ files: { relativeTo: __dirname } });
+        var server = provisionServer(__dirname);
         var handler = function (request, reply) {
 
             reply(Inert.file.response(__dirname + '/../package.json', null, request));
@@ -739,8 +741,8 @@ describe('handler()', function () {
 
             expect(res.headers['content-type']).to.equal('application/json; charset=utf-8');
             expect(res.headers['content-encoding']).to.equal('deflate');
-            expect(res.headers['content-length']).to.not.exist;
-            expect(res.payload).to.exist;
+            expect(res.headers['content-length']).to.not.exist();
+            expect(res.payload).to.exist();
             done();
         });
     });
@@ -770,8 +772,8 @@ describe('handler()', function () {
         server.inject({ url: '/file', headers: { 'accept-encoding': 'gzip' } }, function (res) {
 
             expect(res.headers['content-encoding']).to.equal('gzip');
-            expect(res.headers['content-length']).to.not.exist;
-            expect(res.payload).to.exist;
+            expect(res.headers['content-length']).to.not.exist();
+            expect(res.payload).to.exist();
             done();
         });
     });
@@ -799,7 +801,7 @@ describe('handler()', function () {
         server.inject('/file', function (res) {
 
             expect(res.headers['content-type']).to.equal('image/png');
-            expect(res.payload).to.exist;
+            expect(res.payload).to.exist();
             done();
         });
     });
@@ -808,11 +810,11 @@ describe('handler()', function () {
 
         var fn = function () {
 
-            var server = provisionServer(0, { files: { relativeTo: __dirname } });
+            var server = provisionServer(__dirname);
             server.route({ method: 'GET', path: '/fileparam/{path}', handler: { fileTest: function () { } } });
         };
 
-        expect(fn).to.not.throw(Error);
+        expect(fn).to.not.throw();
         done();
     });
 

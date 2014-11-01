@@ -3,6 +3,7 @@
 var Fs = require('fs');
 var Path = require('path');
 var Boom = require('boom');
+var Code = require('code');
 var Hapi = require('hapi');
 var Inert = require('..');
 var Lab = require('lab');
@@ -18,7 +19,7 @@ var internals = {};
 var lab = exports.lab = Lab.script();
 var describe = lab.describe;
 var it = lab.it;
-var expect = Lab.expect;
+var expect = Code.expect;
 
 
 describe('handler()', function () {
