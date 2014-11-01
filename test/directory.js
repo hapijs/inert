@@ -27,7 +27,7 @@ describe('handler()', function () {
     var count = 0;
     var provisionServer = function (options, name) {
 
-        var server = new Hapi.Server(name || 'domain' + (++count).toString(), options);
+        var server = new Hapi.Connection(name || 'domain' + (++count).toString(), options);
         server.handler('directoryTest', Inert.directory.handler);
         return server;
     };
