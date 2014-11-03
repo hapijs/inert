@@ -25,9 +25,10 @@ var expect = Code.expect;
 describe('handler()', function () {
 
     var count = 0;
-    var provisionServer = function (options, name) {
+    var provisionServer = function (connection, options) {
 
-        var server = new Hapi.Connection(name || 'domain' + (++count).toString(), options);
+        var server = new Hapi.Server(options);
+        server.connection('domain' + (++count).toString(), connection);
         server.handler('directoryTest', Inert.directory.handler);
         return server;
     };
@@ -309,7 +310,7 @@ describe('handler()', function () {
 
     it('returns a 500 when index.html is a directory', function (done) {
 
-        var server = provisionServer({ files: { relativeTo: __dirname }, debug: false });
+        var server = provisionServer({ files: { relativeTo: __dirname } }, { debug: false });
         server.route({ method: 'GET', path: '/directoryIndex/{path*}', handler: { directoryTest: { path: './directory/' } } });
 
         server.inject('/directoryIndex/invalid/', function (res) {
@@ -440,7 +441,7 @@ describe('handler()', function () {
 
     it('returns error when failing to prepare file response due to bad state', function (done) {
 
-        var server = provisionServer({ files: { relativeTo: __dirname }, debug: false });
+        var server = provisionServer({ files: { relativeTo: __dirname } }, { debug: false });
         server.route({ method: 'GET', path: '/directory/{path*}', handler: { directoryTest: { path: './' } } });
 
         server.ext('onRequest', function (request, reply) {
@@ -618,7 +619,7 @@ describe('handler()', function () {
             return 5;
         };
 
-        var server = provisionServer({ debug: false });
+        var server = provisionServer(null, { debug: false });
         server.route({ method: 'GET', path: '/test/{path*}', handler: { directoryTest: { path: path } } });
 
         server.inject('/test/index.html', function (res) {
