@@ -24,11 +24,10 @@ var expect = Code.expect;
 
 describe('handler()', function () {
 
-    var count = 0;
     var provisionServer = function (connection, options) {
 
         var server = new Hapi.Server(options);
-        server.connection('domain' + (++count).toString(), connection);
+        server.connection(connection);
         server.handler('directoryTest', Inert.directory.handler);
         return server;
     };

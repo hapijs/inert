@@ -27,11 +27,10 @@ var expect = Code.expect;
 
 describe('handler()', function () {
 
-    var count = 0;
     var provisionServer = function (relativeTo, etagsCacheMaxSize) {
 
         var server = new Hapi.Server({ files: { etagsCacheMaxSize: etagsCacheMaxSize } });
-        server.connection('domain' + (++count).toString(), { files: { relativeTo: relativeTo } });
+        server.connection({ files: { relativeTo: relativeTo } });
         server.handler('fileTest', Inert.file.handler);
         return server;
     };
