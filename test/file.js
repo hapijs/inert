@@ -827,7 +827,7 @@ describe('handler()', function () {
         server.ext('onPreResponse', function (request, reply) {
 
             Fs.unlinkSync(filename);
-            reply();
+            return reply.continue();
         });
 
         server.inject('/', function (res) {
@@ -847,7 +847,7 @@ describe('handler()', function () {
             server.ext('onPreResponse', function (request, reply) {
 
                 request.response._marshall = function () { throw new Error('not called'); };
-                reply();
+                return reply.continue();
             });
 
             server.inject({ url: '/file', headers: { 'if-modified-since': res1.headers.date } }, function (res2) {

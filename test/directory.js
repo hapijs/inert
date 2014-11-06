@@ -446,7 +446,7 @@ describe('handler()', function () {
         server.ext('onRequest', function (request, reply) {
 
             reply.state('bad', {});
-            reply();
+            return reply.continue();
         });
 
         server.inject('/directory/file.js', function (res) {
