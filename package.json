@@ -18,7 +18,6 @@
     "hoek": "2.x.x",
     "items": "1.x.x",
     "joi": "^4.7.x",
-    "mimos": "1.x.x",
     "lru-cache": "2.5.x"
   },
   "devDependencies": {
