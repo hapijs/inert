@@ -170,7 +170,7 @@ describe('file', function () {
             var server = provisionServer(__dirname);
             var handler = function (request, reply) {
 
-                reply(Inert.file.response(__dirname + '/../package.json', { mode: 'attachment' }, request));
+                reply(Inert.file.response(Path.join(__dirname, '..', 'package.json'), { mode: 'attachment' }, request));
             };
 
             server.route({ method: 'GET', path: '/file', handler: handler });
@@ -190,7 +190,7 @@ describe('file', function () {
             var server = provisionServer(__dirname);
             var handler = function (request, reply) {
 
-                reply(Inert.file.response(__dirname + '/../package.json', { mode: 'attachment', filename: 'attachment.json' }, request));
+                reply(Inert.file.response(Path.join(__dirname, '..', 'package.json'), { mode: 'attachment', filename: 'attachment.json' }, request));
             };
 
             server.route({ method: 'GET', path: '/file', handler: handler });
@@ -210,7 +210,7 @@ describe('file', function () {
             var server = provisionServer(__dirname);
             var handler = function (request, reply) {
 
-                reply(Inert.file.response(__dirname + '/../package.json', { mode: 'inline' }, request));
+                reply(Inert.file.response(Path.join(__dirname, '..', 'package.json'), { mode: 'inline' }, request));
             };
 
             server.route({ method: 'GET', path: '/file', handler: handler });
@@ -230,7 +230,7 @@ describe('file', function () {
             var server = provisionServer(__dirname);
             var handler = function (request, reply) {
 
-                reply(Inert.file.response(__dirname + '/../package.json', { mode: 'inline', filename: 'attachment.json' }, request));
+                reply(Inert.file.response(Path.join(__dirname, '..', 'package.json'), { mode: 'inline', filename: 'attachment.json' }, request));
             };
 
             server.route({ method: 'GET', path: '/file', handler: handler });
@@ -274,7 +274,7 @@ describe('file', function () {
         it('returns a file using the build-in handler config', function (done) {
 
             var server = provisionServer(__dirname);
-            server.route({ method: 'GET', path: '/staticfile', handler: { fileTest: __dirname + '/../package.json' } });
+            server.route({ method: 'GET', path: '/staticfile', handler: { fileTest: Path.join(__dirname, '..', 'package.json') } });
 
             server.inject('/staticfile', function (res) {
 
@@ -340,7 +340,7 @@ describe('file', function () {
         it('returns a file with default mime type', function (done) {
 
             var server = provisionServer();
-            server.route({ method: 'GET', path: '/', handler: { fileTest: __dirname + '/../Makefile' } });
+            server.route({ method: 'GET', path: '/', handler: { fileTest: Path.join(__dirname, '..', 'Makefile') } });
 
             server.inject('/', function (res) {
 
@@ -423,7 +423,7 @@ describe('file', function () {
                         expect(res3.headers).to.include('etag');
                         expect(res3.headers).to.include('last-modified');
 
-                        var fd = Fs.openSync(__dirname + '/file/note.txt', 'w');
+                        var fd = Fs.openSync(Path.join(__dirname, 'file', 'note.txt'), 'w');
                         Fs.writeSync(fd, new Buffer('Test'), 0, 4);
                         Fs.closeSync(fd);
 
@@ -446,7 +446,7 @@ describe('file', function () {
                                 var etag2 = res5.headers.etag;
                                 expect(etag1).to.equal(etag2);
 
-                                var fd = Fs.openSync(__dirname + '/file/note.txt', 'w');
+                                var fd = Fs.openSync(Path.join(__dirname, 'file', 'note.txt'), 'w');
                                 Fs.writeSync(fd, new Buffer('Test1'), 0, 5);
                                 Fs.closeSync(fd);
 
@@ -469,7 +469,7 @@ describe('file', function () {
                                         var etag3 = res7.headers.etag;
                                         expect(etag1).to.not.equal(etag3);
 
-                                        var fd = Fs.openSync(__dirname + '/file/note.txt', 'w');
+                                        var fd = Fs.openSync(Path.join(__dirname, 'file', 'note.txt'), 'w');
                                         Fs.writeSync(fd, new Buffer('Test'), 0, 4);
                                         Fs.closeSync(fd);
 
@@ -506,7 +506,7 @@ describe('file', function () {
         it('returns a 304 when the request has if-modified-since and the response has not been modified since (larger)', function (done) {
 
             var server = provisionServer();
-            server.route({ method: 'GET', path: '/file', handler: { fileTest: __dirname + '/../package.json' } });
+            server.route({ method: 'GET', path: '/file', handler: { fileTest: Path.join(__dirname, '..', 'package.json') } });
 
             server.inject('/file', function (res1) {
 
@@ -525,7 +525,7 @@ describe('file', function () {
         it('returns a 304 when the request has if-modified-since and the response has not been modified since (equal)', function (done) {
 
             var server = provisionServer();
-            server.route({ method: 'GET', path: '/file', handler: { fileTest: __dirname + '/../package.json' } });
+            server.route({ method: 'GET', path: '/file', handler: { fileTest: Path.join(__dirname, '..', 'package.json') } });
 
             server.inject('/file', function (res1) {
 
@@ -543,7 +543,7 @@ describe('file', function () {
         it('retains etag header on head', function (done) {
 
             var server = provisionServer();
-            server.route({ method: 'GET', path: '/file', handler: { fileTest: __dirname + '/../package.json' } });
+            server.route({ method: 'GET', path: '/file', handler: { fileTest: Path.join(__dirname, '..', 'package.json') } });
 
             server.inject('/file', function (res1) {
 
@@ -560,7 +560,7 @@ describe('file', function () {
         it('changes etag when content encoding is used', function (done) {
 
             var server = provisionServer();
-            server.route({ method: 'GET', path: '/file', handler: { fileTest: __dirname + '/../package.json' } });
+            server.route({ method: 'GET', path: '/file', handler: { fileTest: Path.join(__dirname, '..', 'package.json') } });
 
             server.inject('/file', function (res1) {
 
@@ -586,12 +586,12 @@ describe('file', function () {
         it('returns valid http date responses in last-modified header', function (done) {
 
             var server = provisionServer();
-            server.route({ method: 'GET', path: '/file', handler: { fileTest: __dirname + '/../package.json' } });
+            server.route({ method: 'GET', path: '/file', handler: { fileTest: Path.join(__dirname, '..', 'package.json') } });
 
             server.inject('/file', function (res) {
 
                 expect(res.statusCode).to.equal(200);
-                expect(res.headers['last-modified']).to.equal(Fs.statSync(__dirname + '/../package.json').mtime.toUTCString());
+                expect(res.headers['last-modified']).to.equal(Fs.statSync(Path.join(__dirname, '..', 'package.json')).mtime.toUTCString());
                 done();
             });
         });
@@ -599,7 +599,7 @@ describe('file', function () {
         it('returns 200 if if-modified-since is invalid', function (done) {
 
             var server = provisionServer();
-            server.route({ method: 'GET', path: '/file', handler: { fileTest: __dirname + '/../package.json' } });
+            server.route({ method: 'GET', path: '/file', handler: { fileTest: Path.join(__dirname, '..', 'package.json') } });
 
             server.inject({ url: '/file', headers: { 'if-modified-since': 'some crap' } }, function (res) {
 
@@ -623,7 +623,7 @@ describe('file', function () {
         it('closes file handlers when not reading file stream', { skip: process.platform === 'win32' }, function (done) {
 
             var server = provisionServer();
-            server.route({ method: 'GET', path: '/file', handler: { fileTest: __dirname + '/../package.json' } });
+            server.route({ method: 'GET', path: '/file', handler: { fileTest: Path.join(__dirname, '..', 'package.json') } });
 
             server.inject('/file', function (res1) {
 
@@ -657,7 +657,7 @@ describe('file', function () {
         it('closes file handlers when not using a manually open file stream', { skip: process.platform === 'win32' }, function (done) {
 
             var server = provisionServer();
-            server.route({ method: 'GET', path: '/file', handler: function (request, reply) { reply(Fs.createReadStream(__dirname + '/../package.json')).header('etag', 'abc'); } });
+            server.route({ method: 'GET', path: '/file', handler: function (request, reply) { reply(Fs.createReadStream(Path.join(__dirname, '..', 'package.json'))).header('etag', 'abc'); } });
 
             server.inject('/file', function (res1) {
 
@@ -693,7 +693,7 @@ describe('file', function () {
             var server = provisionServer(__dirname);
             var handler = function (request, reply) {
 
-                reply(Inert.file.response(__dirname + '/../package.json', null, request));
+                reply(Inert.file.response(Path.join(__dirname, '..', 'package.json'), null, request));
             };
 
             server.route({ method: 'GET', path: '/file', handler: handler });
@@ -713,7 +713,7 @@ describe('file', function () {
             var server = provisionServer(__dirname);
             var handler = function (request, reply) {
 
-                reply(Inert.file.response(__dirname + '/file/image.png', null, request));
+                reply(Inert.file.response(Path.join(__dirname, 'file', 'image.png'), null, request));
             };
 
             server.route({ method: 'GET', path: '/file', handler: handler });
@@ -733,7 +733,7 @@ describe('file', function () {
             var server = provisionServer(__dirname);
             var handler = function (request, reply) {
 
-                reply(Inert.file.response(__dirname + '/../package.json', null, request));
+                reply(Inert.file.response(Path.join(__dirname, '..', 'package.json'), null, request));
             };
 
             server.route({ method: 'GET', path: '/file', handler: handler });
@@ -842,7 +842,7 @@ describe('file', function () {
         it('does not open file stream on 304', function (done) {
 
             var server = provisionServer();
-            server.route({ method: 'GET', path: '/file', handler: { fileTest: __dirname + '/../package.json' } });
+            server.route({ method: 'GET', path: '/file', handler: { fileTest: Path.join(__dirname, '..', 'package.json') } });
 
             server.inject('/file', function (res1) {
 
