@@ -383,7 +383,7 @@ describe('directory', function () {
 
             server.inject('/showhidden/.hidden', function (res) {
 
-                expect(res.payload).to.contain('Ssssh!\n');
+                expect(res.payload).to.contain('Ssssh!');
                 done();
             });
         });
