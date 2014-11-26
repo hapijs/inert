@@ -520,24 +520,20 @@ describe('directory', function () {
             });
         });
 
-        it('resolves windows path name from pack using root path', { skip: process.platform !== 'win32' }, function (done) {
+        it('resolves path name from plugin using specified path', function (done) {
 
-            // Note: This uses a root path of where the test file lives (to simulate requiring a pack), which is why the
-            //       directory handler path is ./directory instead of ./test/directory like the other test below
-
-            var pack = {
+            var plugin = function (server, options, next) {
+                server.path(__dirname);
+                server.route({ method: 'GET', path: '/test/{path*}', config: { handler: { directoryTest: { path: Path.join('.', 'directory'), index: false, listing: false } } } });
+                return next();
+            };
+            plugin.attributes = {
                 name: 'directory test',
-                version: '1.0',
-                path: __dirname,
-                register: function (plugin, options, next) {
-
-                    plugin.route({ method: 'GET', path: '/test/{path*}', config: { handler: { directoryTest: { path: './directory', index: false, listing: false } } } });
-                    return next();
-                }
+                version: '1.0'
             };
 
-            var server = provisionServer();
-            server.pack.register(pack, {}, function () { });
+            var server = provisionServer({ router: { stripTrailingSlash: false } });
+            server.register({ register: plugin }, {}, function () { });
 
             server.inject('/test/index.html', function (res) {
 
@@ -546,23 +542,19 @@ describe('directory', function () {
             });
         });
 
-        it('resolves windows path name from pack using relative path', { skip: process.platform !== 'win32' }, function (done) {
+        it('resolves path name from plugin using relative path', function (done) {
 
-            // Note: This simulates a pack which is not "required", and therefore doesn't have a path set. This will use
-            //       the process' root directory then, so the directory handler needs to specify the path relative to that
-
-            var pack = {
+            var plugin = function (server, options, next) {
+                server.route({ method: 'GET', path: '/test/{path*}', config: { handler: { directoryTest: { path: Path.join('.', 'test', 'directory'), index: false, listing: false } } } });
+                return next();
+            };
+            plugin.attributes = {
                 name: 'directory test',
-                version: '1.0',
-                register: function (plugin, options, next) {
-
-                    plugin.route({ method: 'GET', path: '/test/{path*}', config: { handler: { directoryTest: { path: './test/directory', index: false, listing: false } } } });
-                    return next();
-                }
+                version: '1.0'
             };
 
-            var server = provisionServer();
-            server.pack.register(pack, {}, function () { });
+            var server = provisionServer({ router: { stripTrailingSlash: false } });
+            server.register({ register: plugin }, {}, function () { });
 
             server.inject('/test/index.html', function (res) {
 
@@ -571,9 +563,9 @@ describe('directory', function () {
             });
         });
 
-        it('resolves root pathnames on windows', { skip: process.platform !== 'win32' }, function (done) {
+        it('resolves root pathnames', function (done) {
 
-            var server = provisionServer();
+            var server = provisionServer({ router: { stripTrailingSlash: false } });
             server.route({ method: 'GET', path: '/test/{path*}', handler: { directoryTest: { path: Path.join(__dirname, 'directory') } } });
 
             server.inject('/test/index.html', function (res) {
@@ -583,10 +575,10 @@ describe('directory', function () {
             });
         });
 
-        it('resolves relative pathnames on windows', { skip: process.platform !== 'win32' }, function (done) {
+        it('resolves relative pathnames', function (done) {
 
-            var server = provisionServer();
-            server.route({ method: 'GET', path: '/test/{path*}', handler: { directoryTest: { path: './test/directory' } } });
+            var server = provisionServer({ router: { stripTrailingSlash: false } });
+            server.route({ method: 'GET', path: '/test/{path*}', handler: { directoryTest: { path: Path.join('.', 'test', 'directory') } } });
 
             server.inject('/test/index.html', function (res) {
 
