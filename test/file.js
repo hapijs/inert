@@ -819,9 +819,9 @@ describe('file', function () {
             done();
         });
 
-        it('returns error when file is removed before stream is opened', function (done) {
+        it('responds correctly when file is removed while processing', function (done) {
 
-            var filename = Hoek.uniqueFilename(Os.tmpDir());
+            var filename = Hoek.uniqueFilename(Os.tmpDir()) + '.package.json';
             Fs.writeFileSync(filename, 'data');
 
             var server = provisionServer();
@@ -834,7 +834,41 @@ describe('file', function () {
 
             server.inject('/', function (res) {
 
-                expect(res.statusCode).to.equal(500);
+                expect(res.statusCode).to.equal(200);
+                done();
+            });
+        });
+
+        it('responds correctly when file is changed while processing', function (done) {
+
+            var filename = Hoek.uniqueFilename(Os.tmpDir()) + '.package.json';
+            Fs.writeFileSync(filename, 'data');
+
+            var server = provisionServer();
+            server.route({ method: 'GET', path: '/', handler: { fileTest: filename } });
+            server.ext('onPreResponse', function (request, reply) {
+
+                var tempfile = filename + '~';
+                if (process.platform === 'win32') {
+                    // workaround to replace open file without a permission error
+                    Fs.renameSync(filename, tempfile);
+                    Fs.writeFileSync(filename, 'database');
+                    Fs.unlinkSync(tempfile);
+                } else {
+                    // atomic file replace
+                    Fs.writeFileSync(tempfile, 'database');
+                    Fs.renameSync(tempfile, filename);
+                }
+
+                return reply.continue();
+            });
+
+            server.inject('/', function (res) {
+                Fs.unlinkSync(filename);
+
+                expect(res.statusCode).to.equal(200);
+                expect(res.headers['content-length']).to.equal(4);
+                expect(res.payload).to.equal('data');
                 done();
             });
         });
@@ -858,6 +892,72 @@ describe('file', function () {
                     done();
                 });
             });
+        });
+
+        it('returns error when aborted while processing', function (done) {
+
+            var filename = Hoek.uniqueFilename(Os.tmpDir()) + '.package.json';
+            Fs.writeFileSync(filename, 'data');
+
+            var server = provisionServer();
+            server.route({ method: 'GET', path: '/', handler: { fileTest: filename } });
+            server.ext('onPreResponse', function (request, reply) {
+                reply(Boom.internal('crapping out'));
+            });
+
+            server.inject('/', function (res) {
+
+                expect(res.statusCode).to.equal(500);
+                done();
+            });
+        });
+
+        it('returns error when stat fails unexpectedly', function (done) {
+
+            var filename = Hoek.uniqueFilename(Os.tmpDir()) + '.package.json';
+            Fs.writeFileSync(filename, 'data');
+
+            var orig = Fs.fstat;
+            Fs.fstat = function (fd, callback) {        // can return EIO error
+
+                Fs.fstat = orig;
+                callback(new Error('failed'));
+            };
+
+
+            var server = provisionServer();
+            server.route({ method: 'GET', path: '/', handler: { fileTest: filename } });
+
+            server.inject('/', function (res) {
+
+                expect(res.statusCode).to.equal(500);
+                done();
+            });
+        });
+
+        it('has not leaked file descriptors', { skip: process.platform === 'win32' }, function (done) {
+
+            // validate that all descriptors has been closed
+            var cmd = ChildProcess.spawn('lsof', ['-p', process.pid]);
+            var lsof = '';
+            cmd.stdout.on('data', function (buffer) {
+
+                lsof += buffer.toString();
+            });
+
+            cmd.stdout.on('end', function () {
+
+                var count = 0;
+                var lines = lsof.split('\n');
+                for (var i = 0, il = lines.length; i < il; ++i) {
+                    count += !!lines[i].match(/package.json/);
+                }
+
+                expect(count).to.equal(0);
+                done();
+            });
+
+            cmd.stdin.end();
         });
     });
 });
