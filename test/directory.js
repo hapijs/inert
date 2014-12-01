@@ -5,6 +5,7 @@ var Path = require('path');
 var Boom = require('boom');
 var Code = require('code');
 var Hapi = require('hapi');
+var Hoek = require('hoek');
 var Inert = require('..');
 var Lab = require('lab');
 
@@ -26,18 +27,18 @@ describe('directory', function () {
 
     describe('handler()', function () {
 
-        var provisionServer = function (connection, options) {
+        var provisionServer = function (connection, debug) {
 
-            var server = new Hapi.Server(options);
+            var server = new Hapi.Server({ minimal: true, debug: debug });
             server.connection(connection || { routes: { files: { relativeTo: __dirname } }, router: { stripTrailingSlash: false } });
-            server.handler('directoryTest', Inert.directory.handler);
+            server.register(Inert, Hoek.ignore);
             return server;
         };
 
         it('returns a 403 when no index exists and listing is disabled', function (done) {
 
             var server = provisionServer();
-            server.route({ method: 'GET', path: '/directory/{path*}', handler: { directoryTest: { path: '.' } } });      // Use '.' to test path normalization
+            server.route({ method: 'GET', path: '/directory/{path*}', handler: { directory: { path: '.' } } });      // Use '.' to test path normalization
 
             server.inject('/directory/', function (res) {
 
@@ -49,7 +50,7 @@ describe('directory', function () {
         it('returns a 403 when requesting a path containing \'..\'', function (done) {
 
             var server = provisionServer();
-            server.route({ method: 'GET', path: '/directory/{path*}', handler: { directoryTest: { path: './' } } });
+            server.route({ method: 'GET', path: '/directory/{path*}', handler: { directory: { path: './' } } });
 
             server.inject('/directory/..', function (res) {
 
@@ -61,7 +62,7 @@ describe('directory', function () {
         it('returns a 404 when requesting an unknown file within a directory', function (done) {
 
             var server = provisionServer();
-            server.route({ method: 'GET', path: '/directory/{path*}', handler: { directoryTest: { path: './' } } });
+            server.route({ method: 'GET', path: '/directory/{path*}', handler: { directory: { path: './' } } });
 
             server.inject('/directory/xyz', function (res) {
 
@@ -73,7 +74,7 @@ describe('directory', function () {
         it('returns a file when requesting a file from the directory', function (done) {
 
             var server = provisionServer();
-            server.route({ method: 'GET', path: '/directory/{path*}', handler: { directoryTest: { path: './' } } });
+            server.route({ method: 'GET', path: '/directory/{path*}', handler: { directory: { path: './' } } });
 
             server.inject('/directory/directory.js', function (res) {
 
@@ -86,7 +87,7 @@ describe('directory', function () {
         it('returns a file when requesting a file from multi directory setup', function (done) {
 
             var server = provisionServer();
-            server.route({ method: 'GET', path: '/multiple/{path*}', handler: { directoryTest: { path: ['./', '../'], listing: true } } });
+            server.route({ method: 'GET', path: '/multiple/{path*}', handler: { directory: { path: ['./', '../'], listing: true } } });
 
             server.inject('/multiple/package.json', function (res) {
 
@@ -99,7 +100,7 @@ describe('directory', function () {
         it('returns a file when requesting a file from multi directory function response', function (done) {
 
             var server = provisionServer();
-            server.route({ method: 'GET', path: '/multiple/{path*}', handler: { directoryTest: { path: function () { return ['./', '../']; }, listing: true } } });
+            server.route({ method: 'GET', path: '/multiple/{path*}', handler: { directory: { path: function () { return ['./', '../']; }, listing: true } } });
 
             server.inject('/multiple/package.json', function (res) {
 
@@ -112,7 +113,7 @@ describe('directory', function () {
         it('returns the correct file when requesting a file from a child directory', function (done) {
 
             var server = provisionServer();
-            server.route({ method: 'GET', path: '/directory/{path*}', handler: { directoryTest: { path: './' } } });
+            server.route({ method: 'GET', path: '/directory/{path*}', handler: { directory: { path: './' } } });
 
             server.inject('/directory/directory/index.html', function (res) {
 
@@ -125,7 +126,7 @@ describe('directory', function () {
         it('returns the correct listing links when viewing top level path', function (done) {
 
             var server = provisionServer();
-            server.route({ method: 'GET', path: '/{path*}', handler: { directoryTest: { path: './', index: true, listing: true } } });
+            server.route({ method: 'GET', path: '/{path*}', handler: { directory: { path: './', index: true, listing: true } } });
 
             server.inject('/', function (res) {
 
@@ -138,7 +139,7 @@ describe('directory', function () {
         it('does not contain any double / when viewing sub path listing', function (done) {
 
             var server = provisionServer();
-            server.route({ method: 'GET', path: '/showindex/{path*}', handler: { directoryTest: { path: './', index: true, listing: true } } });
+            server.route({ method: 'GET', path: '/showindex/{path*}', handler: { directory: { path: './', index: true, listing: true } } });
 
             server.inject('/showindex/', function (res) {
 
@@ -151,7 +152,7 @@ describe('directory', function () {
         it('has the correct link to sub folders when inside of a sub folder listing', function (done) {
 
             var server = provisionServer();
-            server.route({ method: 'GET', path: '/showindex/{path*}', handler: { directoryTest: { path: './', index: true, listing: true } } });
+            server.route({ method: 'GET', path: '/showindex/{path*}', handler: { directory: { path: './', index: true, listing: true } } });
 
             server.inject('/showindex/directory/subdir/', function (res) {
 
@@ -164,7 +165,7 @@ describe('directory', function () {
         it('has the correct link to a sub folder with spaces when inside of a sub folder listing', function (done) {
 
             var server = provisionServer();
-            server.route({ method: 'GET', path: '/showindex/{path*}', handler: { directoryTest: { path: './', index: true, listing: true } } });
+            server.route({ method: 'GET', path: '/showindex/{path*}', handler: { directory: { path: './', index: true, listing: true } } });
 
             server.inject('/showindex/directory/subdir/', function (res) {
 
@@ -177,7 +178,7 @@ describe('directory', function () {
         it('has the correct link to a file when inside of a listing of a sub folder that is inside a subfolder with spaces', function (done) {
 
             var server = provisionServer();
-            server.route({ method: 'GET', path: '/showindex/{path*}', handler: { directoryTest: { path: './', index: true, listing: true } } });
+            server.route({ method: 'GET', path: '/showindex/{path*}', handler: { directory: { path: './', index: true, listing: true } } });
 
             server.inject('/showindex/directory/subdir/sub%20subdir%3D/subsubsubdir/', function (res) {
 
@@ -190,7 +191,7 @@ describe('directory', function () {
         it('returns the correct file when requesting a file from a directory with spaces', function (done) {
 
             var server = provisionServer();
-            server.route({ method: 'GET', path: '/directory/{path*}', handler: { directoryTest: { path: './', index: true, listing: true } } });
+            server.route({ method: 'GET', path: '/directory/{path*}', handler: { directory: { path: './', index: true, listing: true } } });
 
             server.inject('/directory/directory/subdir/sub%20subdir%3D/test%24.json', function (res) {
 
@@ -203,7 +204,7 @@ describe('directory', function () {
         it('returns the correct file when requesting a file from a directory that its parent directory has spaces', function (done) {
 
             var server = provisionServer();
-            server.route({ method: 'GET', path: '/directory/{path*}', handler: { directoryTest: { path: './', index: true, listing: true } } });
+            server.route({ method: 'GET', path: '/directory/{path*}', handler: { directory: { path: './', index: true, listing: true } } });
 
             server.inject('/directory/directory/subdir/sub%20subdir%3D/subsubsubdir/test.txt', function (res) {
 
@@ -216,7 +217,7 @@ describe('directory', function () {
         it('returns a 403 when index and listing are disabled', function (done) {
 
             var server = provisionServer();
-            server.route({ method: 'GET', path: '/directoryx/{path*}', handler: { directoryTest: { path: '../', index: false } } });
+            server.route({ method: 'GET', path: '/directoryx/{path*}', handler: { directory: { path: '../', index: false } } });
 
             server.inject('/directoryx/', function (res) {
 
@@ -228,7 +229,7 @@ describe('directory', function () {
         it('returns a list of files when listing is enabled', function (done) {
 
             var server = provisionServer();
-            server.route({ method: 'GET', path: '/directorylist/{path*}', handler: { directoryTest: { path: '../', listing: true } } });
+            server.route({ method: 'GET', path: '/directorylist/{path*}', handler: { directory: { path: '../', listing: true } } });
 
             server.inject('/directorylist/', function (res) {
 
@@ -241,7 +242,7 @@ describe('directory', function () {
         it('returns a list of files for subdirectory', function (done) {
 
             var server = provisionServer();
-            server.route({ method: 'GET', path: '/directorylist/{path*}', handler: { directoryTest: { path: '../', listing: true } } });
+            server.route({ method: 'GET', path: '/directorylist/{path*}', handler: { directory: { path: '../', listing: true } } });
 
             server.inject('/directorylist/test/', function (res) {
 
@@ -254,7 +255,7 @@ describe('directory', function () {
         it('returns a list of files when listing is enabled and index disabled', function (done) {
 
             var server = provisionServer();
-            server.route({ method: 'GET', path: '/directorylistx/{path*}', handler: { directoryTest: { path: '../', listing: true, index: false } } });
+            server.route({ method: 'GET', path: '/directorylistx/{path*}', handler: { directory: { path: '../', listing: true, index: false } } });
 
             server.inject('/directorylistx/', function (res) {
 
@@ -267,7 +268,7 @@ describe('directory', function () {
         it('returns the index when found', function (done) {
 
             var server = provisionServer();
-            server.route({ method: 'GET', path: '/directoryIndex/{path*}', handler: { directoryTest: { path: './directory/' } } });
+            server.route({ method: 'GET', path: '/directoryIndex/{path*}', handler: { directory: { path: './directory/' } } });
 
             server.inject('/directoryIndex/', function (res) {
 
@@ -280,7 +281,7 @@ describe('directory', function () {
         it('returns the index when found in hidden folder', function (done) {
 
             var server = provisionServer();
-            server.route({ method: 'GET', path: '/{path*}', handler: { directoryTest: { path: './directory/.dot' } } });
+            server.route({ method: 'GET', path: '/{path*}', handler: { directory: { path: './directory/.dot' } } });
 
             server.inject('/index.html', function (res) {
 
@@ -299,7 +300,7 @@ describe('directory', function () {
         it('returns listing when found in hidden folder', function (done) {
 
             var server = provisionServer();
-            server.route({ method: 'GET', path: '/{path*}', handler: { directoryTest: { path: './directory/.dot', index: false, listing: true } } });
+            server.route({ method: 'GET', path: '/{path*}', handler: { directory: { path: './directory/.dot', index: false, listing: true } } });
 
             server.inject('/', function (res) {
 
@@ -311,8 +312,8 @@ describe('directory', function () {
 
         it('returns a 500 when index.html is a directory', function (done) {
 
-            var server = provisionServer(null, { debug: false });
-            server.route({ method: 'GET', path: '/directoryIndex/{path*}', handler: { directoryTest: { path: './directory/' } } });
+            var server = provisionServer(null, false);
+            server.route({ method: 'GET', path: '/directoryIndex/{path*}', handler: { directory: { path: './directory/' } } });
 
             server.inject('/directoryIndex/invalid/', function (res) {
 
@@ -329,7 +330,7 @@ describe('directory', function () {
             };
 
             var server = provisionServer();
-            server.route({ method: 'GET', path: '/directoryfn/{path?}', handler: { directoryTest: { path: directoryFn } } });
+            server.route({ method: 'GET', path: '/directoryfn/{path?}', handler: { directory: { path: directoryFn } } });
 
             server.inject('/directoryfn/index.js', function (res) {
 
@@ -342,7 +343,7 @@ describe('directory', function () {
         it('returns listing with hidden files when hidden files should be shown', function (done) {
 
             var server = provisionServer();
-            server.route({ method: 'GET', path: '/showhidden/{path*}', handler: { directoryTest: { path: './', showHidden: true, listing: true } } });
+            server.route({ method: 'GET', path: '/showhidden/{path*}', handler: { directory: { path: './', showHidden: true, listing: true } } });
 
             server.inject('/showhidden/', function (res) {
 
@@ -354,7 +355,7 @@ describe('directory', function () {
         it('returns listing without hidden files when hidden files should not be shown', function (done) {
 
             var server = provisionServer();
-            server.route({ method: 'GET', path: '/noshowhidden/{path*}', handler: { directoryTest: { path: './', listing: true } } });
+            server.route({ method: 'GET', path: '/noshowhidden/{path*}', handler: { directory: { path: './', listing: true } } });
 
             server.inject('/noshowhidden/', function (res) {
 
@@ -367,7 +368,7 @@ describe('directory', function () {
         it('returns a 404 response when requesting a hidden file when showHidden is disabled', function (done) {
 
             var server = provisionServer();
-            server.route({ method: 'GET', path: '/noshowhidden/{path*}', handler: { directoryTest: { path: './', listing: true } } });
+            server.route({ method: 'GET', path: '/noshowhidden/{path*}', handler: { directory: { path: './', listing: true } } });
 
             server.inject('/noshowhidden/.hidden', function (res) {
 
@@ -379,7 +380,7 @@ describe('directory', function () {
         it('returns a file when requesting a hidden file when showHidden is enabled', function (done) {
 
             var server = provisionServer();
-            server.route({ method: 'GET', path: '/showhidden/{path*}', handler: { directoryTest: { path: './', showHidden: true, listing: true } } });
+            server.route({ method: 'GET', path: '/showhidden/{path*}', handler: { directory: { path: './', showHidden: true, listing: true } } });
 
             server.inject('/showhidden/.hidden', function (res) {
 
@@ -391,7 +392,7 @@ describe('directory', function () {
         it('redirects to the same path with / appended if asking for a directory', function (done) {
 
             var server = provisionServer();
-            server.route({ method: 'GET', path: '/redirect/{path*}', handler: { directoryTest: { path: './', index: true, listing: true } } });
+            server.route({ method: 'GET', path: '/redirect/{path*}', handler: { directory: { path: './', index: true, listing: true } } });
 
             server.inject('/redirect/directory/subdir', function (res) {
 
@@ -404,7 +405,7 @@ describe('directory', function () {
         it('does not redirect to the same path with / appended redirectToSlash disabled', function (done) {
 
             var server = provisionServer();
-            server.route({ method: 'GET', path: '/redirect/{path*}', handler: { directoryTest: { path: './', index: true, listing: true, redirectToSlash: false } } });
+            server.route({ method: 'GET', path: '/redirect/{path*}', handler: { directory: { path: './', index: true, listing: true, redirectToSlash: false } } });
 
             server.inject('http://example.com/redirect/directory/subdir', function (res) {
 
@@ -417,7 +418,7 @@ describe('directory', function () {
         it('does not redirect to the same path with / appended when server stripTrailingSlash is true', function (done) {
 
             var server = provisionServer({ routes: { files: { relativeTo: __dirname } }, router: { stripTrailingSlash: true } });
-            server.route({ method: 'GET', path: '/redirect/{path*}', handler: { directoryTest: { path: './', index: true, listing: true } } });
+            server.route({ method: 'GET', path: '/redirect/{path*}', handler: { directory: { path: './', index: true, listing: true } } });
 
             server.inject('http://example.com/redirect/directory/subdir', function (res) {
 
@@ -430,7 +431,7 @@ describe('directory', function () {
         it('ignores unused path params', function (done) {
 
             var server = provisionServer();
-            server.route({ method: 'GET', path: '/{ignore}/4/{path*}', handler: { directoryTest: { path: './' } } });
+            server.route({ method: 'GET', path: '/{ignore}/4/{path*}', handler: { directory: { path: './' } } });
 
             server.inject('/crap/4/file.js', function (res) {
 
@@ -442,8 +443,8 @@ describe('directory', function () {
 
         it('returns error when failing to prepare file response due to bad state', function (done) {
 
-            var server = provisionServer(null, { debug: false });
-            server.route({ method: 'GET', path: '/directory/{path*}', handler: { directoryTest: { path: './' } } });
+            var server = provisionServer(null, false);
+            server.route({ method: 'GET', path: '/directory/{path*}', handler: { directory: { path: './' } } });
 
             server.ext('onRequest', function (request, reply) {
 
@@ -461,7 +462,7 @@ describe('directory', function () {
         it('returns error when listing fails due to directory read error', { parallel: false }, function (done) {
 
             var server = provisionServer();
-            server.route({ method: 'GET', path: '/directorylist/{path*}', handler: { directoryTest: { path: '../', listing: true } } });
+            server.route({ method: 'GET', path: '/directorylist/{path*}', handler: { directory: { path: '../', listing: true } } });
 
             var orig = Fs.readdir;
             Fs.readdir = function (path, callback) { Fs.readdir = orig; callback(new Error('Simulated Directory Error')); };
@@ -475,7 +476,7 @@ describe('directory', function () {
         it('appends default extension', function (done) {
 
             var server = provisionServer();
-            server.route({ method: 'GET', path: '/directory/{path*}', handler: { directoryTest: { path: __dirname, defaultExtension: 'html' } } });
+            server.route({ method: 'GET', path: '/directory/{path*}', handler: { directory: { path: __dirname, defaultExtension: 'html' } } });
 
             server.inject('/directory/directory/index', function (res) {
 
@@ -487,7 +488,7 @@ describe('directory', function () {
         it('appends default extension when resource ends with /', function (done) {
 
             var server = provisionServer();
-            server.route({ method: 'GET', path: '/directory/{path*}', handler: { directoryTest: { path: __dirname, defaultExtension: 'html' } } });
+            server.route({ method: 'GET', path: '/directory/{path*}', handler: { directory: { path: __dirname, defaultExtension: 'html' } } });
 
             server.inject('/directory/directory/index/', function (res) {
 
@@ -499,7 +500,7 @@ describe('directory', function () {
         it('appends default extension and fails to find file', function (done) {
 
             var server = provisionServer();
-            server.route({ method: 'GET', path: '/directory/{path*}', handler: { directoryTest: { path: __dirname, defaultExtension: 'html' } } });
+            server.route({ method: 'GET', path: '/directory/{path*}', handler: { directory: { path: __dirname, defaultExtension: 'html' } } });
 
             server.inject('/directory/directory/none', function (res) {
 
@@ -511,7 +512,7 @@ describe('directory', function () {
         it('does not append default extension when directory exists', function (done) {
 
             var server = provisionServer();
-            server.route({ method: 'GET', path: '/directory/{path*}', handler: { directoryTest: { path: __dirname, defaultExtension: 'html' } } });
+            server.route({ method: 'GET', path: '/directory/{path*}', handler: { directory: { path: __dirname, defaultExtension: 'html' } } });
 
             server.inject('/directory/directory', function (res) {
 
@@ -524,7 +525,7 @@ describe('directory', function () {
 
             var plugin = function (server, options, next) {
                 server.path(__dirname);
-                server.route({ method: 'GET', path: '/test/{path*}', config: { handler: { directoryTest: { path: Path.join('.', 'directory'), index: false, listing: false } } } });
+                server.route({ method: 'GET', path: '/test/{path*}', config: { handler: { directory: { path: Path.join('.', 'directory'), index: false, listing: false } } } });
                 return next();
             };
             plugin.attributes = {
@@ -545,7 +546,7 @@ describe('directory', function () {
         it('resolves path name from plugin using relative path', function (done) {
 
             var plugin = function (server, options, next) {
-                server.route({ method: 'GET', path: '/test/{path*}', config: { handler: { directoryTest: { path: Path.join('.', 'test', 'directory'), index: false, listing: false } } } });
+                server.route({ method: 'GET', path: '/test/{path*}', config: { handler: { directory: { path: Path.join('.', 'test', 'directory'), index: false, listing: false } } } });
                 return next();
             };
             plugin.attributes = {
@@ -566,7 +567,7 @@ describe('directory', function () {
         it('resolves root pathnames', function (done) {
 
             var server = provisionServer({ router: { stripTrailingSlash: false } });
-            server.route({ method: 'GET', path: '/test/{path*}', handler: { directoryTest: { path: Path.join(__dirname, 'directory') } } });
+            server.route({ method: 'GET', path: '/test/{path*}', handler: { directory: { path: Path.join(__dirname, 'directory') } } });
 
             server.inject('/test/index.html', function (res) {
 
@@ -578,7 +579,7 @@ describe('directory', function () {
         it('resolves relative pathnames', function (done) {
 
             var server = provisionServer({ router: { stripTrailingSlash: false } });
-            server.route({ method: 'GET', path: '/test/{path*}', handler: { directoryTest: { path: Path.join('.', 'test', 'directory') } } });
+            server.route({ method: 'GET', path: '/test/{path*}', handler: { directory: { path: Path.join('.', 'test', 'directory') } } });
 
             server.inject('/test/index.html', function (res) {
 
@@ -595,7 +596,7 @@ describe('directory', function () {
             };
 
             var server = provisionServer();
-            server.route({ method: 'GET', path: '/test/{path*}', handler: { directoryTest: { path: path } } });
+            server.route({ method: 'GET', path: '/test/{path*}', handler: { directory: { path: path } } });
 
             server.inject('/test/index.html', function (res) {
 
@@ -612,8 +613,8 @@ describe('directory', function () {
                 return 5;
             };
 
-            var server = provisionServer(null, { debug: false });
-            server.route({ method: 'GET', path: '/test/{path*}', handler: { directoryTest: { path: path } } });
+            var server = provisionServer(null, false);
+            server.route({ method: 'GET', path: '/test/{path*}', handler: { directory: { path: path } } });
 
             server.inject('/test/index.html', function (res) {
 
@@ -625,7 +626,7 @@ describe('directory', function () {
         it('returns a gzipped file using precompressed file', function (done) {
 
             var server = provisionServer();
-            server.route({ method: 'GET', path: '/{p*}', handler: { directoryTest: { path: './file', lookupCompressed: true } } });
+            server.route({ method: 'GET', path: '/{p*}', handler: { directory: { path: './file', lookupCompressed: true } } });
 
             server.inject({ url: '/image.png', headers: { 'accept-encoding': 'gzip' } }, function (res) {
 
