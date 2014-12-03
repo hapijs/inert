@@ -265,7 +265,7 @@ describe('directory', function () {
             });
         });
 
-        it('returns the index when found', function (done) {
+        it('returns the index when found and default index enabled', function (done) {
 
             var server = provisionServer();
             server.route({ method: 'GET', path: '/directoryIndex/{path*}', handler: { directory: { path: './directory/' } } });
@@ -274,6 +274,31 @@ describe('directory', function () {
 
                 expect(res.statusCode).to.equal(200);
                 expect(res.payload).to.contain('<p>test</p>');
+                done();
+            });
+        });
+
+        it('returns the index when found and custom index specified', function (done) {
+
+            var server = provisionServer();
+            server.route({ method: 'GET', path: '/directoryIndex/{path*}', handler: { directory: { path: './directory/', index: 'index.js' } } });
+
+            server.inject('/directoryIndex/', function (res) {
+
+                expect(res.statusCode).to.equal(200);
+                expect(res.payload).to.contain('var isTest = true;');
+                done();
+            });
+        });
+
+        it('returns a 403 when listing is disabled and a custom index is specified but not found', function (done) {
+
+            var server = provisionServer();
+            server.route({ method: 'GET', path: '/directoryIndex/{path*}', handler: { directory: { path: './directory/', index: 'default.html' } } });
+
+            server.inject('/directoryIndex/', function (res) {
+
+                expect(res.statusCode).to.equal(403);
                 done();
             });
         });
@@ -314,6 +339,18 @@ describe('directory', function () {
 
             var server = provisionServer(null, false);
             server.route({ method: 'GET', path: '/directoryIndex/{path*}', handler: { directory: { path: './directory/' } } });
+
+            server.inject('/directoryIndex/invalid/', function (res) {
+
+                expect(res.statusCode).to.equal(500);
+                done();
+            });
+        });
+
+        it('returns a 500 when the custom index is a directory', function (done) {
+
+            var server = provisionServer(null, false);
+            server.route({ method: 'GET', path: '/directoryIndex/{path*}', handler: { directory: { path: './directory/', index: 'misc' } } });
 
             server.inject('/directoryIndex/invalid/', function (res) {
 
