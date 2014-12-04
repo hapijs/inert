@@ -278,7 +278,7 @@ describe('directory', function () {
             });
         });
 
-        it('returns the index when found in hidden folder', function (done) {
+        it('returns the index when served from a hidden folder', function (done) {
 
             var server = provisionServer();
             server.route({ method: 'GET', path: '/{path*}', handler: { directory: { path: './directory/.dot' } } });
@@ -297,7 +297,7 @@ describe('directory', function () {
             });
         });
 
-        it('returns listing when found in hidden folder', function (done) {
+        it('returns listing when served from a hidden folder', function (done) {
 
             var server = provisionServer();
             server.route({ method: 'GET', path: '/{path*}', handler: { directory: { path: './directory/.dot', index: false, listing: true } } });
@@ -377,6 +377,35 @@ describe('directory', function () {
             });
         });
 
+        it('returns a 404 response when requesting a file in a hidden directory when showHidden is disabled', function (done) {
+
+            var server = provisionServer();
+            server.route({ method: 'GET', path: '/noshowhidden/{path*}', handler: { directory: { path: './directory', listing: true } } });
+
+            server.inject('/noshowhidden/.dot/index.html', function (res) {
+
+                expect(res.statusCode).to.equal(404);
+
+                server.inject('/noshowhidden/.dot/', function (res) {
+
+                    expect(res.statusCode).to.equal(404);
+                    done();
+                });
+            });
+        });
+
+        it('returns a 404 response when requesting a hidden directory listing when showHidden is disabled', function (done) {
+
+            var server = provisionServer();
+            server.route({ method: 'GET', path: '/noshowhidden/{path*}', handler: { directory: { path: './directory', listing: true, index: false } } });
+
+            server.inject('/noshowhidden/.dot/', function (res) {
+
+                expect(res.statusCode).to.equal(404);
+                done();
+            });
+        });
+
         it('returns a file when requesting a hidden file when showHidden is enabled', function (done) {
 
             var server = provisionServer();
@@ -386,6 +415,25 @@ describe('directory', function () {
 
                 expect(res.payload).to.contain('Ssssh!');
                 done();
+            });
+        });
+
+        it('returns a a file when requesting a file in a hidden directory when showHidden is enabled', function (done) {
+
+            var server = provisionServer();
+            server.route({ method: 'GET', path: '/noshowhidden/{path*}', handler: { directory: { path: './directory', showHidden: true, listing: true } } });
+
+            server.inject('/noshowhidden/.dot/index.html', function (res) {
+
+                expect(res.statusCode).to.equal(200);
+                expect(res.payload).to.contain('test');
+
+                server.inject('/noshowhidden/.dot/', function (res) {
+
+                    expect(res.statusCode).to.equal(200);
+                    expect(res.payload).to.contain('test');
+                    done();
+                });
             });
         });
 
