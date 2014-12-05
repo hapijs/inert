@@ -265,7 +265,7 @@ describe('directory', function () {
             });
         });
 
-        it('returns the index when found and default index enabled', function (done) {
+        it('returns the "index.html" index file when found and default index enabled', function (done) {
 
             var server = provisionServer();
             server.route({ method: 'GET', path: '/directoryIndex/{path*}', handler: { directory: { path: './directory/' } } });
@@ -278,7 +278,7 @@ describe('directory', function () {
             });
         });
 
-        it('returns the index when found and custom index specified', function (done) {
+        it('returns the index file when found and single custom index file specified', function (done) {
 
             var server = provisionServer();
             server.route({ method: 'GET', path: '/directoryIndex/{path*}', handler: { directory: { path: './directory/', index: 'index.js' } } });
@@ -291,10 +291,35 @@ describe('directory', function () {
             });
         });
 
-        it('returns a 403 when listing is disabled and a custom index is specified but not found', function (done) {
+        it('returns the first index file found when an array of index files is specified', function (done) {
+
+            var server = provisionServer();
+            server.route({ method: 'GET', path: '/directoryIndex/{path*}', handler: { directory: { path: './directory/', index: ['default.html', 'index.js', 'non.existing'] } } });
+
+            server.inject('/directoryIndex/', function (res) {
+
+                expect(res.statusCode).to.equal(200);
+                expect(res.payload).to.contain('var isTest = true;');
+                done();
+            });
+        });
+
+        it('returns a 403 when listing is disabled and a custom index file is specified but not found', function (done) {
 
             var server = provisionServer();
             server.route({ method: 'GET', path: '/directoryIndex/{path*}', handler: { directory: { path: './directory/', index: 'default.html' } } });
+
+            server.inject('/directoryIndex/', function (res) {
+
+                expect(res.statusCode).to.equal(403);
+                done();
+            });
+        });
+
+        it('returns a 403 when listing is disabled and an array of index files is specified but none were found', function (done) {
+
+            var server = provisionServer();
+            server.route({ method: 'GET', path: '/directoryIndex/{path*}', handler: { directory: { path: './directory/', index: ['default.html', 'non.existing'] } } });
 
             server.inject('/directoryIndex/', function (res) {
 
