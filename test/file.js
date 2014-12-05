@@ -811,8 +811,9 @@ describe('file', function () {
 
             var fn = function () {
 
-                var server = provisionServer(__dirname);
+                var server = provisionServer();
                 server.route({ method: 'GET', path: '/fileparam/{path}', handler: { file: function () { } } });
+                server.route({ method: 'GET', path: '/filepathparam/{path}', handler: { file: { path: function () { } } } });
             };
 
             expect(fn).to.not.throw();
