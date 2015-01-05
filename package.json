@@ -15,6 +15,7 @@
     "node": ">=0.10.32"
   },
   "dependencies": {
+    "ammo": "1.x.x",
     "boom": "2.x.x",
     "hoek": "2.x.x",
     "items": "1.x.x",

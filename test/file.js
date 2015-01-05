@@ -936,6 +936,204 @@ describe('file', function () {
             });
         });
 
+        describe('response range', function () {
+
+            it('returns a subset of a file (start)', function (done) {
+
+                var server = provisionServer();
+                server.route({ method: 'GET', path: '/file', handler: { file: { path: Path.join(__dirname, 'file/image.png') } } });
+
+                server.inject({ url: '/file', headers: { 'range': 'bytes=0-4' } }, function (res) {
+
+                    expect(res.statusCode).to.equal(206);
+                    expect(res.headers['content-length']).to.equal(5);
+                    expect(res.headers['content-range']).to.equal('bytes 0-4/42010');
+                    expect(res.headers['accept-ranges']).to.equal('bytes');
+                    expect(res.payload).to.equal('\x89PNG\r');
+                    done();
+                });
+            });
+
+            it('returns a subset of a file (middle)', function (done) {
+
+                var server = provisionServer();
+                server.route({ method: 'GET', path: '/file', handler: { file: { path: Path.join(__dirname, 'file/image.png') } } });
+
+                server.inject({ url: '/file', headers: { 'range': 'bytes=1-5' } }, function (res) {
+
+                    expect(res.statusCode).to.equal(206);
+                    expect(res.headers['content-length']).to.equal(5);
+                    expect(res.headers['content-range']).to.equal('bytes 1-5/42010');
+                    expect(res.headers['accept-ranges']).to.equal('bytes');
+                    expect(res.payload).to.equal('PNG\r\n');
+                    done();
+                });
+            });
+
+            it('returns a subset of a file (-to)', function (done) {
+
+                var server = provisionServer();
+                server.route({ method: 'GET', path: '/file', handler: { file: { path: Path.join(__dirname, 'file/image.png') } } });
+
+                server.inject({ url: '/file', headers: { 'range': 'bytes=-5' } }, function (res) {
+
+                    expect(res.statusCode).to.equal(206);
+                    expect(res.headers['content-length']).to.equal(5);
+                    expect(res.headers['content-range']).to.equal('bytes 42005-42009/42010');
+                    expect(res.headers['accept-ranges']).to.equal('bytes');
+                    expect(res.payload).to.equal('D\xAEB\x60\x82');
+                    done();
+                });
+            });
+
+            it('returns a subset of a file (from-)', function (done) {
+
+                var server = provisionServer();
+                server.route({ method: 'GET', path: '/file', handler: { file: { path: Path.join(__dirname, 'file/image.png') } } });
+
+                server.inject({ url: '/file', headers: { 'range': 'bytes=42005-' } }, function (res) {
+
+                    expect(res.statusCode).to.equal(206);
+                    expect(res.headers['content-length']).to.equal(5);
+                    expect(res.headers['content-range']).to.equal('bytes 42005-42009/42010');
+                    expect(res.headers['accept-ranges']).to.equal('bytes');
+                    expect(res.payload).to.equal('D\xAEB\x60\x82');
+                    done();
+                });
+            });
+
+            it('returns a subset of a file (beyond end)', function (done) {
+
+                var server = provisionServer();
+                server.route({ method: 'GET', path: '/file', handler: { file: { path: Path.join(__dirname, 'file/image.png') } } });
+
+                server.inject({ url: '/file', headers: { 'range': 'bytes=42005-42011' } }, function (res) {
+
+                    expect(res.statusCode).to.equal(206);
+                    expect(res.headers['content-length']).to.equal(5);
+                    expect(res.headers['content-range']).to.equal('bytes 42005-42009/42010');
+                    expect(res.headers['accept-ranges']).to.equal('bytes');
+                    expect(res.payload).to.equal('D\xAEB\x60\x82');
+                    done();
+                });
+            });
+
+            it('returns a subset of a file (if-range)', function (done) {
+
+                var server = provisionServer();
+                server.route({ method: 'GET', path: '/file', handler: { file: { path: Path.join(__dirname, 'file/image.png') } } });
+
+                server.inject('/file', function (res) {
+
+                    server.inject('/file', function (res1) {
+
+                        server.inject({ url: '/file', headers: { 'range': 'bytes=42005-42011', 'if-range': res1.headers.etag } }, function (res2) {
+
+                            expect(res2.statusCode).to.equal(206);
+                            expect(res2.headers['content-length']).to.equal(5);
+                            expect(res2.headers['content-range']).to.equal('bytes 42005-42009/42010');
+                            expect(res2.headers['accept-ranges']).to.equal('bytes');
+                            expect(res2.payload).to.equal('D\xAEB\x60\x82');
+                            done();
+                        });
+                    });
+                });
+            });
+
+            it('returns 200 on incorrect if-range', function (done) {
+
+                var server = provisionServer();
+                server.route({ method: 'GET', path: '/file', handler: { file: { path: Path.join(__dirname, 'file/image.png') } } });
+
+                server.inject({ url: '/file', headers: { 'range': 'bytes=42005-42011', 'if-range': 'abc' } }, function (res2) {
+
+                    expect(res2.statusCode).to.equal(200);
+                    done();
+                });
+            });
+
+            it('returns 416 on invalid range (unit)', function (done) {
+
+                var server = provisionServer();
+                server.route({ method: 'GET', path: '/file', handler: { file: { path: Path.join(__dirname, 'file/image.png') } } });
+
+                server.inject({ url: '/file', headers: { 'range': 'horses=1-5' } }, function (res) {
+
+                    expect(res.statusCode).to.equal(416);
+                    expect(res.headers['content-range']).to.equal('bytes */42010');
+                    done();
+                });
+            });
+
+            it('returns 416 on invalid range (inversed)', function (done) {
+
+                var server = provisionServer();
+                server.route({ method: 'GET', path: '/file', handler: { file: { path: Path.join(__dirname, 'file/image.png') } } });
+
+                server.inject({ url: '/file', headers: { 'range': 'bytes=5-1' } }, function (res) {
+
+                    expect(res.statusCode).to.equal(416);
+                    expect(res.headers['content-range']).to.equal('bytes */42010');
+                    done();
+                });
+            });
+
+            it('returns 416 on invalid range (format)', function (done) {
+
+                var server = provisionServer();
+                server.route({ method: 'GET', path: '/file', handler: { file: { path: Path.join(__dirname, 'file/image.png') } } });
+
+                server.inject({ url: '/file', headers: { 'range': 'bytes 1-5' } }, function (res) {
+
+                    expect(res.statusCode).to.equal(416);
+                    expect(res.headers['content-range']).to.equal('bytes */42010');
+                    done();
+                });
+            });
+
+            it('returns 416 on invalid range (empty range)', function (done) {
+
+                var server = provisionServer();
+                server.route({ method: 'GET', path: '/file', handler: { file: { path: Path.join(__dirname, 'file/image.png') } } });
+
+                server.inject({ url: '/file', headers: { 'range': 'bytes=-' } }, function (res) {
+
+                    expect(res.statusCode).to.equal(416);
+                    expect(res.headers['content-range']).to.equal('bytes */42010');
+                    done();
+                });
+            });
+
+            it('returns 200 on multiple ranges', function (done) {
+
+                var server = provisionServer();
+                server.route({ method: 'GET', path: '/file', handler: { file: { path: Path.join(__dirname, 'file/image.png') } } });
+
+                server.inject({ url: '/file', headers: { 'range': 'bytes=1-5,7-10' } }, function (res) {
+
+                    expect(res.statusCode).to.equal(200);
+                    expect(res.headers['content-length']).to.equal(42010);
+                    done();
+                });
+            });
+
+            it('returns a subset of a file using precompressed file', function (done) {
+
+                var server = provisionServer();
+                server.route({ method: 'GET', path: '/file', handler: { file: { path: Path.join(__dirname, 'file/image.png'), lookupCompressed: true } } });
+                server.inject({ url: '/file', headers: { 'range': 'bytes=10-18', 'accept-encoding': 'gzip' } }, function (res) {
+
+                    expect(res.statusCode).to.equal(206);
+                    expect(res.headers['content-encoding']).to.equal('gzip');
+                    expect(res.headers['content-length']).to.equal(9);
+                    expect(res.headers['content-range']).to.equal('bytes 10-18/41936');
+                    expect(res.headers['accept-ranges']).to.equal('bytes');
+                    expect(res.payload).to.equal('image.png');
+                    done();
+                });
+            });
+        });
+
         it('has not leaked file descriptors', { skip: process.platform === 'win32' }, function (done) {
 
             // validate that all descriptors has been closed
