@@ -936,6 +936,84 @@ describe('file', function () {
             });
         });
 
+        it('returns error when open fails unexpectedly', function (done) {
+
+            var filename = Hoek.uniqueFilename(Os.tmpDir()) + '.package.json';
+            Fs.writeFileSync(filename, 'data');
+
+            var orig = Fs.open;
+            Fs.open = function () {        // can return EMFILE error
+
+                Fs.open = orig;
+                var callback = arguments[arguments.length - 1];
+                callback(new Error('failed'));
+            };
+
+            var server = provisionServer();
+            server.route({ method: 'GET', path: '/', handler: { file: filename } });
+
+            server.inject('/', function (res) {
+
+                expect(res.statusCode).to.equal(500);
+                done();
+            });
+        });
+
+        it('returns a 403 when missing file read permission', function (done) {
+
+            var filename = Hoek.uniqueFilename(Os.tmpDir()) + '.package.json';
+            Fs.writeFileSync(filename, 'data');
+
+            var fd;
+            if (process.platform === 'win32') {
+                // make a permissionless file by unlinking an open file
+                fd = Fs.openSync(filename, 'r');
+                Fs.unlinkSync(filename);
+            } else {
+                Fs.chmodSync(filename, 0);
+            }
+
+            var server = provisionServer();
+            server.route({ method: 'GET', path: '/', handler: { file: filename } });
+
+            server.inject('/', function (res1) {
+
+                var orig = Fs.open;
+                Fs.open = function (path, mode, callback) {        // fake alternate permission error
+
+                    Fs.open = orig;
+                    return Fs.open(path, mode, function(err, fd) {
+
+                        if (err) {
+                            if (err.code === 'EACCES') {
+                                err.code = 'EPERM';
+                                err.errno = -1;
+                            } else if (err.code === 'EPERM') {
+                                err.code = 'EPERM';
+                                err.errno = -13;
+                            }
+                        }
+
+                        return callback(err, fd);
+                    });
+                };
+
+                server.inject('/', function (res2) {
+
+                    // cleanup
+                    if (typeof fd === 'number') {
+                        Fs.closeSync(fd);
+                    } else {
+                        Fs.unlinkSync(filename);
+                    }
+
+                    expect(res1.statusCode).to.equal(403);
+                    expect(res2.statusCode).to.equal(403);
+                    done();
+                });
+            });
+        });
+
         describe('response range', function () {
 
             it('returns a subset of a file (start)', function (done) {
