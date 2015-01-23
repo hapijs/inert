@@ -1,7 +1,7 @@
 {
   "name": "inert",
   "description": "Static file and directory handlers plugin for hapi.js",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "repository": "git://github.com/hapijs/inert",
   "main": "index",
   "keywords": [
