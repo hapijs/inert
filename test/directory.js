@@ -801,5 +801,17 @@ describe('directory', function () {
                 done();
             });
         });
+
+        it('returns a 403 for null byte paths', function (done) {
+
+            var server = provisionServer();
+            server.route({ method: 'GET', path: '/{path*}', handler: { directory: { path: './' } } });
+
+            server.inject('/index%00.html', function (res) {
+
+                expect(res.statusCode).to.equal(403);
+                done();
+            });
+        });
     });
 });
