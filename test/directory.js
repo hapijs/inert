@@ -1,6 +1,7 @@
 // Load modules
 
 var Fs = require('fs');
+var Os = require('os');
 var Path = require('path');
 var Boom = require('boom');
 var Code = require('code');
@@ -746,6 +747,57 @@ describe('directory', function () {
                 var content = Fs.readFileSync('./test/file/image.png.gz');
                 expect(res.headers['content-length']).to.equal(content.length);
                 expect(res.payload.length).to.equal(content.length);
+                done();
+            });
+        });
+
+        it('returns a 403 when missing file read permission', function (done) {
+
+            var filename = Hoek.uniqueFilename(Os.tmpDir());
+            Fs.writeFileSync(filename, 'data');
+
+            var fd;
+            if (process.platform === 'win32') {
+                // make a permissionless file by unlinking an open file
+                fd = Fs.openSync(filename, 'r');
+                Fs.unlinkSync(filename);
+            } else {
+                Fs.chmodSync(filename, 0);
+            }
+
+            var server = provisionServer();
+            server.route({ method: 'GET', path: '/test/{path*}', handler: { directory: { path: Path.dirname(filename) } } });
+
+            server.inject('/test/' + Path.basename(filename), function (res) {
+
+                // cleanup
+                if (typeof fd === 'number') {
+                    Fs.closeSync(fd);
+                } else {
+                    Fs.unlinkSync(filename);
+                }
+
+                expect(res.statusCode).to.equal(403);
+                done();
+            });
+        });
+
+        it('returns error when a file open fails', function (done) {
+
+            var orig = Fs.open;
+            Fs.open = function () {        // can return EMFILE error
+
+                Fs.open = orig;
+                var callback = arguments[arguments.length - 1];
+                callback(new Error('failed'));
+            };
+
+            var server = provisionServer();
+            server.route({ method: 'GET', path: '/test/{path*}', handler: { directory: { path: './' } } });
+
+            server.inject('/test/fail', function (res) {
+
+                expect(res.statusCode).to.equal(500);
                 done();
             });
         });
