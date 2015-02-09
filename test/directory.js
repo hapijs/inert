@@ -802,7 +802,7 @@ describe('directory', function () {
             });
         });
 
-        it('returns a 403 for null byte paths', function (done) {
+        it('returns a 404 for null byte paths', function (done) {
 
             var server = provisionServer();
             server.route({ method: 'GET', path: '/{path*}', handler: { directory: { path: './' } } });
