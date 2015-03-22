@@ -989,7 +989,7 @@ describe('file', function () {
                                 err.code = 'EPERM';
                                 err.errno = -1;
                             } else if (err.code === 'EPERM') {
-                                err.code = 'EPERM';
+                                err.code = 'EACCES';
                                 err.errno = -13;
                             }
                         }
