@@ -289,7 +289,7 @@ describe('file', function () {
 
             var filenameFn = function (request) {
 
-                return '../' + request.params.file;
+                return '../lib/' + request.params.file;
             };
 
             var server = provisionServer(__dirname);
@@ -297,7 +297,7 @@ describe('file', function () {
 
             server.inject('/filefn/index.js', function (res) {
 
-                expect(res.payload).to.contain('./lib');
+                expect(res.payload).to.contain('// Load modules');
                 expect(res.headers['content-type']).to.equal('application/javascript; charset=utf-8');
                 expect(res.headers['content-length']).to.exist();
                 done();
@@ -340,7 +340,7 @@ describe('file', function () {
         it('returns a file with default mime type', function (done) {
 
             var server = provisionServer();
-            server.route({ method: 'GET', path: '/', handler: { file: Path.join(__dirname, '..', 'Makefile') } });
+            server.route({ method: 'GET', path: '/', handler: { file: Path.join(__dirname, '..', 'LICENSE') } });
 
             server.inject('/', function (res) {
 
@@ -354,7 +354,7 @@ describe('file', function () {
             var server = provisionServer(__dirname);
             var handler = function (request, reply) {
 
-                reply.file('../Makefile').type('application/example');
+                reply.file('../LICENSE').type('application/example');
             };
 
             server.route({ method: 'GET', path: '/file', handler: handler });
@@ -611,7 +611,14 @@ describe('file', function () {
         it('returns 200 if last-modified is invalid', function (done) {
 
             var server = provisionServer();
-            server.route({ method: 'GET', path: '/', handler: function (request, reply) { reply('ok').header('last-modified', 'some crap'); } });
+            server.route({
+                method: 'GET',
+                path: '/',
+                handler: function (request, reply) {
+
+                    reply('ok').header('last-modified', 'some crap');
+                }
+            });
 
             server.inject({ url: '/', headers: { 'if-modified-since': 'Fri, 28 Mar 2014 22:52:39 GMT' } }, function (res2) {
 
@@ -657,7 +664,14 @@ describe('file', function () {
         it('closes file handlers when not using a manually open file stream', { skip: process.platform === 'win32' }, function (done) {
 
             var server = provisionServer();
-            server.route({ method: 'GET', path: '/file', handler: function (request, reply) { reply(Fs.createReadStream(Path.join(__dirname, '..', 'package.json'))).header('etag', 'abc'); } });
+            server.route({
+                method: 'GET',
+                path: '/file',
+                handler: function (request, reply) {
+
+                    reply(Fs.createReadStream(Path.join(__dirname, '..', 'package.json'))).header('etag', 'abc');
+                }
+            });
 
             server.inject('/file', function (res1) {
 
@@ -865,6 +879,7 @@ describe('file', function () {
             });
 
             server.inject('/', function (res) {
+
                 Fs.unlinkSync(filename);
 
                 expect(res.statusCode).to.equal(200);
@@ -883,7 +898,11 @@ describe('file', function () {
 
                 server.ext('onPreResponse', function (request, reply) {
 
-                    request.response._marshall = function () { throw new Error('not called'); };
+                    request.response._marshall = function () {
+
+                        throw new Error('not called');
+                    };
+
                     return reply.continue();
                 });
 
@@ -903,6 +922,7 @@ describe('file', function () {
             var server = provisionServer();
             server.route({ method: 'GET', path: '/', handler: { file: filename } });
             server.ext('onPreResponse', function (request, reply) {
+
                 reply(Boom.internal('crapping out'));
             });
 
@@ -982,7 +1002,7 @@ describe('file', function () {
                 Fs.open = function (path, mode, callback) {        // fake alternate permission error
 
                     Fs.open = orig;
-                    return Fs.open(path, mode, function(err, fd) {
+                    return Fs.open(path, mode, function (err, fd) {
 
                         if (err) {
                             if (err.code === 'EACCES') {

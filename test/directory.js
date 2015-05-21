@@ -101,7 +101,19 @@ describe('directory', function () {
         it('returns a file when requesting a file from multi directory function response', function (done) {
 
             var server = provisionServer();
-            server.route({ method: 'GET', path: '/multiple/{path*}', handler: { directory: { path: function () { return ['./', '../']; }, listing: true } } });
+            server.route({
+                method: 'GET',
+                path: '/multiple/{path*}',
+                handler: {
+                    directory: {
+                        path: function () {
+
+                            return ['./', '../'];
+                        },
+                        listing: true
+                    }
+                }
+            });
 
             server.inject('/multiple/package.json', function (res) {
 
@@ -576,7 +588,12 @@ describe('directory', function () {
             server.route({ method: 'GET', path: '/directorylist/{path*}', handler: { directory: { path: '../', listing: true } } });
 
             var orig = Fs.readdir;
-            Fs.readdir = function (path, callback) { Fs.readdir = orig; callback(new Error('Simulated Directory Error')); };
+            Fs.readdir = function (path, callback) {
+
+                Fs.readdir = orig;
+                return callback(new Error('Simulated Directory Error'));
+            };
+
             server.inject('/directorylist/', function (res) {
 
                 expect(res.statusCode).to.equal(500);
@@ -635,6 +652,7 @@ describe('directory', function () {
         it('resolves path name from plugin using specified path', function (done) {
 
             var plugin = function (server, options, next) {
+
                 server.path(__dirname);
                 server.route({ method: 'GET', path: '/test/{path*}', config: { handler: { directory: { path: Path.join('.', 'directory'), index: false, listing: false } } } });
                 return next();
@@ -657,6 +675,7 @@ describe('directory', function () {
         it('resolves path name from plugin using relative path', function (done) {
 
             var plugin = function (server, options, next) {
+
                 server.route({ method: 'GET', path: '/test/{path*}', config: { handler: { directory: { path: Path.join('.', 'test', 'directory'), index: false, listing: false } } } });
                 return next();
             };
