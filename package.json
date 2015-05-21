@@ -1,9 +1,9 @@
 {
   "name": "inert",
   "description": "Static file and directory handlers plugin for hapi.js",
-  "version": "2.1.4",
+  "version": "2.1.5",
   "repository": "git://github.com/hapijs/inert",
-  "main": "index",
+  "main": "lib/index.js",
   "keywords": [
     "file",
     "directory",
@@ -20,7 +20,7 @@
     "hoek": "2.x.x",
     "items": "1.x.x",
     "joi": "6.x.x",
-    "lru-cache": "2.5.x"
+    "lru-cache": "2.6.x"
   },
   "devDependencies": {
     "code": "1.x.x",
@@ -31,10 +31,5 @@
     "test": "lab -a code -t 100 -L",
     "test-cov-html": "lab -a code -r html -o coverage.html"
   },
-  "licenses": [
-    {
-      "type": "BSD",
-      "url": "http://github.com/hapijs/inert/raw/master/LICENSE"
-    }
-  ]
+  "license": "BSD-3-Clause"
 }
