@@ -765,7 +765,7 @@ describe('directory', function () {
 
                 var content = Fs.readFileSync('./test/file/image.png.gz');
                 expect(res.headers['content-length']).to.equal(content.length);
-                expect(res.payload.length).to.equal(content.length);
+                expect(res.rawPayload.length).to.equal(content.length);
                 done();
             });
         });
