@@ -377,11 +377,11 @@ describe('file', function () {
                 expect(res.result).to.equal('Test');
                 expect(res.headers.etag).to.not.exist();
 
-                server.inject('/note', function (res) {
+                server.inject('/note', function (res2) {
 
-                    expect(res.statusCode).to.equal(200);
-                    expect(res.result).to.equal('Test');
-                    expect(res.headers.etag).to.not.exist();
+                    expect(res2.statusCode).to.equal(200);
+                    expect(res2.result).to.equal('Test');
+                    expect(res2.headers.etag).to.not.exist();
                     done();
                 });
             });
@@ -423,9 +423,9 @@ describe('file', function () {
                         expect(res3.headers).to.include('etag');
                         expect(res3.headers).to.include('last-modified');
 
-                        var fd = Fs.openSync(Path.join(__dirname, 'file', 'note.txt'), 'w');
-                        Fs.writeSync(fd, new Buffer('Test'), 0, 4);
-                        Fs.closeSync(fd);
+                        var fd1 = Fs.openSync(Path.join(__dirname, 'file', 'note.txt'), 'w');
+                        Fs.writeSync(fd1, new Buffer('Test'), 0, 4);
+                        Fs.closeSync(fd1);
 
                         // etag after file modified, content unchanged
 
@@ -446,9 +446,9 @@ describe('file', function () {
                                 var etag2 = res5.headers.etag;
                                 expect(etag1).to.equal(etag2);
 
-                                var fd = Fs.openSync(Path.join(__dirname, 'file', 'note.txt'), 'w');
-                                Fs.writeSync(fd, new Buffer('Test1'), 0, 5);
-                                Fs.closeSync(fd);
+                                var fd2 = Fs.openSync(Path.join(__dirname, 'file', 'note.txt'), 'w');
+                                Fs.writeSync(fd2, new Buffer('Test1'), 0, 5);
+                                Fs.closeSync(fd2);
 
                                 // etag after file modified, content changed
 
@@ -469,9 +469,9 @@ describe('file', function () {
                                         var etag3 = res7.headers.etag;
                                         expect(etag1).to.not.equal(etag3);
 
-                                        var fd = Fs.openSync(Path.join(__dirname, 'file', 'note.txt'), 'w');
-                                        Fs.writeSync(fd, new Buffer('Test'), 0, 4);
-                                        Fs.closeSync(fd);
+                                        var fd3 = Fs.openSync(Path.join(__dirname, 'file', 'note.txt'), 'w');
+                                        Fs.writeSync(fd3, new Buffer('Test'), 0, 4);
+                                        Fs.closeSync(fd3);
 
                                         // No etag, content restored
 
@@ -984,10 +984,10 @@ describe('file', function () {
             var filename = Hoek.uniqueFilename(Os.tmpDir()) + '.package.json';
             Fs.writeFileSync(filename, 'data');
 
-            var fd;
+            var retainedFd;
             if (process.platform === 'win32') {
                 // make a permissionless file by unlinking an open file
-                fd = Fs.openSync(filename, 'r');
+                retainedFd = Fs.openSync(filename, 'r');
                 Fs.unlinkSync(filename);
             } else {
                 Fs.chmodSync(filename, 0);
@@ -1021,8 +1021,8 @@ describe('file', function () {
                 server.inject('/', function (res2) {
 
                     // cleanup
-                    if (typeof fd === 'number') {
-                        Fs.closeSync(fd);
+                    if (typeof retainedFd === 'number') {
+                        Fs.closeSync(retainedFd);
                     } else {
                         Fs.unlinkSync(filename);
                     }

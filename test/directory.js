@@ -351,10 +351,10 @@ describe('directory', function () {
                 expect(res.statusCode).to.equal(200);
                 expect(res.payload).to.contain('<p>test</p>');
 
-                server.inject('/', function (res) {
+                server.inject('/', function (res2) {
 
-                    expect(res.statusCode).to.equal(200);
-                    expect(res.payload).to.contain('<p>test</p>');
+                    expect(res2.statusCode).to.equal(200);
+                    expect(res2.payload).to.contain('<p>test</p>');
                     done();
                 });
             });
@@ -461,9 +461,9 @@ describe('directory', function () {
 
                 expect(res.statusCode).to.equal(404);
 
-                server.inject('/noshowhidden/.dot/', function (res) {
+                server.inject('/noshowhidden/.dot/', function (res2) {
 
-                    expect(res.statusCode).to.equal(404);
+                    expect(res2.statusCode).to.equal(404);
                     done();
                 });
             });
@@ -503,10 +503,10 @@ describe('directory', function () {
                 expect(res.statusCode).to.equal(200);
                 expect(res.payload).to.contain('test');
 
-                server.inject('/noshowhidden/.dot/', function (res) {
+                server.inject('/noshowhidden/.dot/', function (res2) {
 
-                    expect(res.statusCode).to.equal(200);
-                    expect(res.payload).to.contain('test');
+                    expect(res2.statusCode).to.equal(200);
+                    expect(res2.payload).to.contain('test');
                     done();
                 });
             });
