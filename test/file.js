@@ -540,6 +540,26 @@ describe('file', function () {
             });
         });
 
+        it('does not try to compute etag on 304 response', function (done) {
+
+            var server = provisionServer();
+            server.route({ method: 'GET', path: '/file', handler: { file: Path.join(__dirname, '..', 'package.json') } });
+
+            var future = new Date(Date.now() + 1000);
+            server.inject({ url: '/file', headers: { 'if-modified-since': future } }, function (res1) {
+
+                expect(res1.statusCode).to.equal(304);
+                expect(res1.headers).to.not.include('etag');
+
+                server.inject({ url: '/file', headers: { 'if-modified-since': future } }, function (res2) {
+
+                    expect(res2.statusCode).to.equal(304);
+                    expect(res2.headers).to.not.include('etag');
+                    done();
+                });
+            });
+        });
+
         it('retains etag header on head', function (done) {
 
             var server = provisionServer();
@@ -1228,6 +1248,24 @@ describe('file', function () {
                     expect(res.headers['accept-ranges']).to.equal('bytes');
                     expect(res.payload).to.equal('image.png');
                     done();
+                });
+            });
+
+            it('never computes etags', function (done) {
+
+                var server = provisionServer();
+                server.route({ method: 'GET', path: '/file', handler: { file: { path: Path.join(__dirname, 'file/image.png') } } });
+
+                server.inject({ url: '/file', headers: { 'range': 'bytes=0-4' } }, function (res1) {
+
+                    expect(res1.statusCode).to.equal(206);
+                    expect(res1.headers.etag).to.not.exist();
+                    server.inject('/file', function (res2) {
+
+                        expect(res2.statusCode).to.equal(200);
+                        expect(res2.headers.etag).to.not.exist();
+                        done();
+                    });
                 });
             });
         });
