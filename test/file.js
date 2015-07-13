@@ -387,7 +387,98 @@ describe('file', function () {
             });
         });
 
-        it('invalidates etags when file changes', function (done) {
+        it('does not return etag when etagMethod is false', function (done) {
+
+            var server = provisionServer({ routes: { files: { relativeTo: __dirname } } }, 0);
+            server.route({ method: 'GET', path: '/note', handler: { file: { path: './file/note.txt', etagMethod: false } } });
+
+            server.inject('/note', function (res) {
+
+                expect(res.statusCode).to.equal(200);
+                expect(res.result).to.equal('Test');
+                expect(res.headers.etag).to.not.exist();
+
+                server.inject('/note', function (res2) {
+
+                    expect(res2.statusCode).to.equal(200);
+                    expect(res2.result).to.equal('Test');
+                    expect(res2.headers.etag).to.not.exist();
+                    done();
+                });
+            });
+        });
+
+        it('invalidates etags when file changes (simple)', function (done) {
+
+            var server = provisionServer({ routes: { files: { relativeTo: __dirname } } });
+
+            server.route({ method: 'GET', path: '/note', handler: { file: { path: './file/note.txt', etagMethod: 'simple' } } });
+
+            // No etag, never requested
+
+            server.inject('/note', function (res1) {
+
+                expect(res1.statusCode).to.equal(200);
+                expect(res1.result).to.equal('Test');
+                expect(res1.headers.etag).to.exist();
+
+                var etag1 = res1.headers.etag;
+
+                expect(etag1.slice(0, 1)).to.equal('"');
+                expect(etag1.slice(-1)).to.equal('"');
+
+                // etag
+
+                server.inject({ url: '/note', headers: { 'if-none-match': etag1 } }, function (res2) {
+
+                    expect(res2.statusCode).to.equal(304);
+                    expect(res2.headers).to.not.include('content-length');
+                    expect(res2.headers).to.include('etag');
+                    expect(res2.headers).to.include('last-modified');
+
+                    var fd1 = Fs.openSync(Path.join(__dirname, 'file', 'note.txt'), 'w');
+                    Fs.writeSync(fd1, new Buffer('Test'), 0, 4);
+                    Fs.closeSync(fd1);
+
+                    // etag after file modified, content unchanged
+
+                    server.inject({ url: '/note', headers: { 'if-none-match': etag1 } }, function (res3) {
+
+                        expect(res3.statusCode).to.equal(200);
+                        expect(res3.result).to.equal('Test');
+                        expect(res3.headers.etag).to.exist();
+
+                        var etag2 = res3.headers.etag;
+                        expect(etag1).to.not.equal(etag2);
+
+                        var fd2 = Fs.openSync(Path.join(__dirname, 'file', 'note.txt'), 'w');
+                        Fs.writeSync(fd2, new Buffer('Test1'), 0, 5);
+                        Fs.closeSync(fd2);
+
+                        // etag after file modified, content changed
+
+                        server.inject({ url: '/note', headers: { 'if-none-match': etag2 } }, function (res4) {
+
+                            expect(res4.statusCode).to.equal(200);
+                            expect(res4.result).to.equal('Test1');
+                            expect(res4.headers.etag).to.exist();
+
+                            var etag3 = res4.headers.etag;
+                            expect(etag1).to.not.equal(etag3);
+                            expect(etag2).to.not.equal(etag3);
+
+                            var fd3 = Fs.openSync(Path.join(__dirname, 'file', 'note.txt'), 'w');
+                            Fs.writeSync(fd3, new Buffer('Test'), 0, 4);
+                            Fs.closeSync(fd3);
+
+                            done();
+                        });
+                    });
+                });
+            });
+        });
+
+        it('invalidates etags when file changes (hash)', function (done) {
 
             var server = provisionServer({ routes: { files: { relativeTo: __dirname } } });
 
@@ -423,6 +514,7 @@ describe('file', function () {
                         expect(res3.headers).to.include('etag');
                         expect(res3.headers).to.include('last-modified');
 
+                        Fs.unlinkSync(Path.join(__dirname, 'file', 'note.txt'));
                         var fd1 = Fs.openSync(Path.join(__dirname, 'file', 'note.txt'), 'w');
                         Fs.writeSync(fd1, new Buffer('Test'), 0, 4);
                         Fs.closeSync(fd1);

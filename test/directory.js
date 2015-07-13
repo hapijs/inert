@@ -770,6 +770,18 @@ describe('directory', function () {
             });
         });
 
+        it('respects the etagMethod option', function (done) {
+
+            var server = provisionServer();
+            server.route({ method: 'GET', path: '/{p*}', handler: { directory: { path: './file', etagMethod: 'simple' } } });
+
+            server.inject('/image.png', function (res) {
+
+                expect(res.headers.etag).to.match(/^".+-.+"$/);
+                done();
+            });
+        });
+
         it('returns a 403 when missing file read permission', function (done) {
 
             var filename = Hoek.uniqueFilename(Os.tmpDir());
