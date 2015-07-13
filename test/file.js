@@ -484,110 +484,75 @@ describe('file', function () {
 
             server.route({ method: 'GET', path: '/note', handler: { file: './file/note.txt' } });
 
-            // No etag, never requested
+            // etag, never requested
 
             server.inject('/note', function (res1) {
 
                 expect(res1.statusCode).to.equal(200);
                 expect(res1.result).to.equal('Test');
-                expect(res1.headers.etag).to.not.exist();
+                expect(res1.headers.etag).to.exist();
 
-                // No etag, previously requested
+                var etag1 = res1.headers.etag;
 
-                server.inject('/note', function (res2) {
+                expect(etag1.slice(0, 1)).to.equal('"');
+                expect(etag1.slice(-1)).to.equal('"');
 
-                    expect(res2.statusCode).to.equal(200);
-                    expect(res2.result).to.equal('Test');
-                    expect(res2.headers.etag).to.exist();
+                // etag
 
-                    var etag1 = res2.headers.etag;
+                server.inject({ url: '/note', headers: { 'if-none-match': etag1 } }, function (res2) {
 
-                    expect(etag1.slice(0, 1)).to.equal('"');
-                    expect(etag1.slice(-1)).to.equal('"');
+                    expect(res2.statusCode).to.equal(304);
+                    expect(res2.headers).to.not.include('content-length');
+                    expect(res2.headers).to.include('etag');
+                    expect(res2.headers).to.include('last-modified');
 
-                    // etag
+                    Fs.unlinkSync(Path.join(__dirname, 'file', 'note.txt'));
+                    var fd1 = Fs.openSync(Path.join(__dirname, 'file', 'note.txt'), 'w');
+                    Fs.writeSync(fd1, new Buffer('Test'), 0, 4);
+                    Fs.closeSync(fd1);
 
-                    server.inject({ url: '/note', headers: { 'if-none-match': etag1 } }, function (res3) {
+                    // etag after file modified, content unchanged
 
-                        expect(res3.statusCode).to.equal(304);
-                        expect(res3.headers).to.not.include('content-length');
-                        expect(res3.headers).to.include('etag');
-                        expect(res3.headers).to.include('last-modified');
+                    server.inject('/note', function (res3) {
 
-                        Fs.unlinkSync(Path.join(__dirname, 'file', 'note.txt'));
-                        var fd1 = Fs.openSync(Path.join(__dirname, 'file', 'note.txt'), 'w');
-                        Fs.writeSync(fd1, new Buffer('Test'), 0, 4);
-                        Fs.closeSync(fd1);
+                        expect(res3.statusCode).to.equal(200);
+                        expect(res3.result).to.equal('Test');
+                        expect(res3.headers.etag).to.exist();
 
-                        // etag after file modified, content unchanged
+                        var etag2 = res3.headers.etag;
+                        expect(etag1).to.equal(etag2);
 
-                        server.inject({ url: '/note', headers: { 'if-none-match': etag1 } }, function (res4) {
+                        var fd2 = Fs.openSync(Path.join(__dirname, 'file', 'note.txt'), 'w');
+                        Fs.writeSync(fd2, new Buffer('Test1'), 0, 5);
+                        Fs.closeSync(fd2);
+
+                        // etag after file modified, content changed
+
+                        server.inject({ url: '/note', headers: { 'if-none-match': etag2 } }, function (res4) {
 
                             expect(res4.statusCode).to.equal(200);
-                            expect(res4.result).to.equal('Test');
-                            expect(res4.headers.etag).to.not.exist();
+                            expect(res4.result).to.equal('Test1');
+                            expect(res4.headers.etag).to.exist();
 
-                            // No etag, previously requested
+                            var etag3 = res4.headers.etag;
+                            expect(etag1).to.not.equal(etag3);
 
-                            server.inject({ url: '/note' }, function (res5) {
+                            var fd3 = Fs.openSync(Path.join(__dirname, 'file', 'note.txt'), 'w');
+                            Fs.writeSync(fd3, new Buffer('Test'), 0, 4);
+                            Fs.closeSync(fd3);
+
+                            // etag, content restored
+
+                            server.inject('/note', function (res5) {
 
                                 expect(res5.statusCode).to.equal(200);
                                 expect(res5.result).to.equal('Test');
                                 expect(res5.headers.etag).to.exist();
 
-                                var etag2 = res5.headers.etag;
-                                expect(etag1).to.equal(etag2);
+                                var etag4 = res5.headers.etag;
+                                expect(etag1).to.equal(etag4);
 
-                                var fd2 = Fs.openSync(Path.join(__dirname, 'file', 'note.txt'), 'w');
-                                Fs.writeSync(fd2, new Buffer('Test1'), 0, 5);
-                                Fs.closeSync(fd2);
-
-                                // etag after file modified, content changed
-
-                                server.inject({ url: '/note', headers: { 'if-none-match': etag2 } }, function (res6) {
-
-                                    expect(res6.statusCode).to.equal(200);
-                                    expect(res6.result).to.equal('Test1');
-                                    expect(res6.headers.etag).to.not.exist();
-
-                                    // No etag, previously requested
-
-                                    server.inject('/note', function (res7) {
-
-                                        expect(res7.statusCode).to.equal(200);
-                                        expect(res7.result).to.equal('Test1');
-                                        expect(res7.headers.etag).to.exist();
-
-                                        var etag3 = res7.headers.etag;
-                                        expect(etag1).to.not.equal(etag3);
-
-                                        var fd3 = Fs.openSync(Path.join(__dirname, 'file', 'note.txt'), 'w');
-                                        Fs.writeSync(fd3, new Buffer('Test'), 0, 4);
-                                        Fs.closeSync(fd3);
-
-                                        // No etag, content restored
-
-                                        server.inject('/note', function (res8) {
-
-                                            expect(res8.statusCode).to.equal(200);
-                                            expect(res8.result).to.equal('Test');
-
-                                            // No etag, previously requested
-
-                                            server.inject('/note', function (res9) {
-
-                                                expect(res9.statusCode).to.equal(200);
-                                                expect(res9.result).to.equal('Test');
-                                                expect(res9.headers.etag).to.exist();
-
-                                                var etag4 = res9.headers.etag;
-                                                expect(etag1).to.equal(etag4);
-
-                                                done();
-                                            });
-                                        });
-                                    });
-                                });
+                                done();
                             });
                         });
                     });
@@ -632,40 +597,32 @@ describe('file', function () {
             });
         });
 
-        it('does not try to compute etag on 304 response', function (done) {
+        it('computes etag header for 304 response', function (done) {
 
             var server = provisionServer();
             server.route({ method: 'GET', path: '/file', handler: { file: Path.join(__dirname, '..', 'package.json') } });
 
             var future = new Date(Date.now() + 1000);
-            server.inject({ url: '/file', headers: { 'if-modified-since': future } }, function (res1) {
+            server.inject({ url: '/file', headers: { 'if-modified-since': future } }, function (res) {
 
-                expect(res1.statusCode).to.equal(304);
-                expect(res1.headers).to.not.include('etag');
-
-                server.inject({ url: '/file', headers: { 'if-modified-since': future } }, function (res2) {
-
-                    expect(res2.statusCode).to.equal(304);
-                    expect(res2.headers).to.not.include('etag');
-                    done();
-                });
+                expect(res.statusCode).to.equal(304);
+                expect(res.headers).to.include('etag');
+                expect(res.headers).to.include('last-modified');
+                done();
             });
         });
 
-        it('retains etag header on head', function (done) {
+        it('computes etag header for head response', function (done) {
 
             var server = provisionServer();
             server.route({ method: 'GET', path: '/file', handler: { file: Path.join(__dirname, '..', 'package.json') } });
 
-            server.inject('/file', function (res1) {
+            server.inject({ method: 'HEAD', url: '/file' }, function (res) {
 
-                server.inject({ method: 'HEAD', url: '/file' }, function (res2) {
-
-                    expect(res2.statusCode).to.equal(200);
-                    expect(res2.headers).to.include('etag');
-                    expect(res2.headers).to.include('last-modified');
-                    done();
-                });
+                expect(res.statusCode).to.equal(200);
+                expect(res.headers).to.include('etag');
+                expect(res.headers).to.include('last-modified');
+                done();
             });
         });
 
@@ -676,22 +633,46 @@ describe('file', function () {
 
             server.inject('/file', function (res1) {
 
-                server.inject('/file', function (res2) {
+                expect(res1.statusCode).to.equal(200);
+                expect(res1.headers).to.include('etag');
+                expect(res1.headers).to.include('last-modified');
+
+                server.inject({ url: '/file', headers: { 'accept-encoding': 'gzip' } }, function (res2) {
 
                     expect(res2.statusCode).to.equal(200);
-                    expect(res2.headers).to.include('etag');
-                    expect(res2.headers).to.include('last-modified');
-
-                    server.inject({ url: '/file', headers: { 'accept-encoding': 'gzip' } }, function (res3) {
-
-                        expect(res3.statusCode).to.equal(200);
-                        expect(res3.headers.vary).to.equal('accept-encoding');
-                        expect(res3.headers.etag).to.not.equal(res2.headers.etag);
-                        expect(res3.headers.etag).to.contain(res2.headers.etag.slice(0, -1) + '-');
-                        expect(res3.headers['last-modified']).to.equal(res2.headers['last-modified']);
-                        done();
-                    });
+                    expect(res2.headers.vary).to.equal('accept-encoding');
+                    expect(res2.headers.etag).to.not.equal(res1.headers.etag);
+                    expect(res2.headers.etag).to.contain(res1.headers.etag.slice(0, -1) + '-');
+                    expect(res2.headers['last-modified']).to.equal(res2.headers['last-modified']);
+                    done();
                 });
+            });
+        });
+
+        it('return a 500 on hashing errors', function (done) {
+
+            var server = provisionServer();
+            server.route({ method: 'GET', path: '/file', handler: { file: Path.join(__dirname, '..', 'package.json') } });
+
+            // Prepare complicated mocking setup to fake an io error
+
+            var orig = Fs.createReadStream;
+            Fs.createReadStream = function (path, options) {
+
+                Fs.createReadStream = orig;
+
+                process.nextTick(function () {
+
+                    Fs.closeSync(options.fd);
+                });
+
+                return Fs.createReadStream(path, options);
+            };
+
+            server.inject('/file', function (res) {
+
+                expect(res.statusCode).to.equal(500);
+                done();
             });
         });
 
@@ -1016,7 +997,7 @@ describe('file', function () {
             });
         });
 
-        it('does not open file stream on 304', function (done) {
+        it('does not marshal response on 304', function (done) {
 
             var server = provisionServer();
             server.route({ method: 'GET', path: '/file', handler: { file: Path.join(__dirname, '..', 'package.json') } });
@@ -1248,19 +1229,16 @@ describe('file', function () {
                 var server = provisionServer();
                 server.route({ method: 'GET', path: '/file', handler: { file: { path: Path.join(__dirname, 'file/image.png') } } });
 
-                server.inject('/file', function (res) {
+                server.inject('/file', function (res1) {
 
-                    server.inject('/file', function (res1) {
+                    server.inject({ url: '/file', headers: { 'range': 'bytes=42005-42011', 'if-range': res1.headers.etag } }, function (res2) {
 
-                        server.inject({ url: '/file', headers: { 'range': 'bytes=42005-42011', 'if-range': res1.headers.etag } }, function (res2) {
-
-                            expect(res2.statusCode).to.equal(206);
-                            expect(res2.headers['content-length']).to.equal(5);
-                            expect(res2.headers['content-range']).to.equal('bytes 42005-42009/42010');
-                            expect(res2.headers['accept-ranges']).to.equal('bytes');
-                            expect(res2.rawPayload).to.deep.equal(new Buffer('D\xAEB\x60\x82', 'ascii'));
-                            done();
-                        });
+                        expect(res2.statusCode).to.equal(206);
+                        expect(res2.headers['content-length']).to.equal(5);
+                        expect(res2.headers['content-range']).to.equal('bytes 42005-42009/42010');
+                        expect(res2.headers['accept-ranges']).to.equal('bytes');
+                        expect(res2.rawPayload).to.deep.equal(new Buffer('D\xAEB\x60\x82', 'ascii'));
+                        done();
                     });
                 });
             });
@@ -1355,24 +1333,6 @@ describe('file', function () {
                     expect(res.headers['accept-ranges']).to.equal('bytes');
                     expect(res.payload).to.equal('image.png');
                     done();
-                });
-            });
-
-            it('never computes etags', function (done) {
-
-                var server = provisionServer();
-                server.route({ method: 'GET', path: '/file', handler: { file: { path: Path.join(__dirname, 'file/image.png') } } });
-
-                server.inject({ url: '/file', headers: { 'range': 'bytes=0-4' } }, function (res1) {
-
-                    expect(res1.statusCode).to.equal(206);
-                    expect(res1.headers.etag).to.not.exist();
-                    server.inject('/file', function (res2) {
-
-                        expect(res2.statusCode).to.equal(200);
-                        expect(res2.headers.etag).to.not.exist();
-                        done();
-                    });
                 });
             });
         });
