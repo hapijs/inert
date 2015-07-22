@@ -255,7 +255,71 @@ describe('directory', () => {
             server.inject('/directorylist/', (res) => {
 
                 expect(res.statusCode).to.equal(200);
+                expect(res.headers['content-type']).to.contain('text/html; charset=utf-8');
                 expect(res.payload).to.contain('package.json');
+                done();
+            });
+        });
+
+        it('returns a list of files when listing is a render function', (done) => {
+
+            const renderFn = (context, callback) => {
+
+                return callback(null, context.files.map((file) => {
+
+                    return file.path;
+                }));
+            };
+
+            const server = provisionServer();
+            server.route({ method: 'GET', path: '/directorylist/{path*}', handler: { directory: { path: '../', listing: renderFn } } });
+
+            server.inject('/directorylist/', (res) => {
+
+                expect(res.statusCode).to.equal(200);
+                expect(res.headers['content-type']).to.equal('application/json; charset=utf-8');
+                expect(res.payload).to.contain('package.json');
+                done();
+            });
+        });
+
+        it('handles all arguments to listing render function callback', (done) => {
+
+            const renderFn = (context, callback) => {
+
+                const list = context.files.map((file) => {
+
+                    return file.name;
+                }).join('\n');
+
+                return callback(null, list, 'text/plain', 'ascii');
+            };
+
+            const server = provisionServer();
+            server.route({ method: 'GET', path: '/directorylist/{path*}', handler: { directory: { path: '../', listing: renderFn } } });
+
+            server.inject('/directorylist/', (res) => {
+
+                expect(res.statusCode).to.equal(200);
+                expect(res.headers['content-type']).to.equal('text/plain; charset=ascii');
+                expect(res.payload).to.contain('package.json');
+                done();
+            });
+        });
+
+        it('returns a 500 when listing render function errors', (done) => {
+
+            const renderFn = (context, callback) => {
+
+                return callback(new Error('Fail!'));
+            };
+
+            const server = provisionServer();
+            server.route({ method: 'GET', path: '/directorylist/{path*}', handler: { directory: { path: '../', listing: renderFn } } });
+
+            server.inject('/directorylist/', (res) => {
+
+                expect(res.statusCode).to.equal(500);
                 done();
             });
         });
