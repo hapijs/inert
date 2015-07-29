@@ -8,6 +8,7 @@ var Boom = require('boom');
 var Code = require('code');
 var Hapi = require('./helpers/hapi');
 var Hoek = require('hoek');
+var Items = require('items');
 var Inert = require('..');
 var Lab = require('lab');
 
@@ -366,6 +367,23 @@ describe('file', function () {
             });
         });
 
+        it('handles multiple simultaneous requests', function (done) {
+
+            var server = provisionServer();
+            server.route({ method: 'GET', path: '/file', handler: { file: Path.join(__dirname, '..', 'package.json') } });
+
+            Items.parallel(['/file', '/file'], function (req, next) {
+
+                server.inject(req, function (res) {
+
+                    expect(res.statusCode).to.equal(200);
+                    expect(res.headers).to.include('etag');
+                    expect(res.headers).to.include('last-modified');
+                    next();
+                });
+            }, done);
+        });
+
         it('does not cache etags', function (done) {
 
             var server = provisionServer({ routes: { files: { relativeTo: __dirname } } }, 0);
@@ -674,6 +692,36 @@ describe('file', function () {
                 expect(res.statusCode).to.equal(500);
                 done();
             });
+        });
+
+        it('handles multiple simultaneous request hashing errors', function (done) {
+
+            var server = provisionServer();
+            server.route({ method: 'GET', path: '/file', handler: { file: Path.join(__dirname, '..', 'package.json') } });
+
+            // Prepare complicated mocking setup to fake an io error
+
+            var orig = Fs.createReadStream;
+            Fs.createReadStream = function (path, options) {
+
+                Fs.createReadStream = orig;
+
+                process.nextTick(function () {
+
+                    Fs.closeSync(options.fd);
+                });
+
+                return Fs.createReadStream(path, options);
+            };
+
+            Items.parallel(['/file', '/file'], function (req, next) {
+
+                server.inject(req, function (res) {
+
+                    expect(res.statusCode).to.equal(500);
+                    next();
+                });
+            }, done);
         });
 
         it('returns valid http date responses in last-modified header', function (done) {
