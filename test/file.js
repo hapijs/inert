@@ -31,9 +31,9 @@ describe('file', function () {
 
         var provisionServer = function (relativeTo, etagsCacheMaxSize) {
 
-            var server = new Hapi.Server({ files: { etagsCacheMaxSize: etagsCacheMaxSize }, minimal: true });
+            var server = new Hapi.Server({ minimal: true });
             server.connection({ routes: { files: { relativeTo: relativeTo } } });
-            server.register(Inert, Hoek.ignore);
+            server.register(etagsCacheMaxSize !== undefined ? { register: Inert, options: { etagsCacheMaxSize: etagsCacheMaxSize } } : Inert, Hoek.ignore);
             return server;
         };
 
