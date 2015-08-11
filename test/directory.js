@@ -30,7 +30,7 @@ describe('directory', function () {
 
         var provisionServer = function (connection, debug) {
 
-            var server = new Hapi.Server({ minimal: true, debug: debug });
+            var server = new Hapi.Server({ debug: debug });
             server.connection(connection || { routes: { files: { relativeTo: __dirname } }, router: { stripTrailingSlash: false } });
             server.register(Inert, Hoek.ignore);
             return server;
