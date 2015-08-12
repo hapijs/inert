@@ -160,6 +160,13 @@ type based on filename extension.:
       - `lookupCompressed` - if `true`, looks for the same filename with the '.gz' suffix for a
         pre-compressed version of the file to serve if the request supports content encoding.
         Defaults to `false`.
+      - `etagMethod` - specifies the method used to calculate the `ETag` header response.
+        Available values:
+          - `'hash'` - SHA1 sum of the file contents, suitable for distributed deployments.
+            Default value.
+          - `'simple'` - Hex encoded size and modification date, suitable when files are stored
+            on a single server.
+          - `false` - Disable ETag computation.
 
 Returns a standard [response](https://github.com/hapijs/hapi/blob/master/API.md#response-object) object.
 
@@ -185,6 +192,13 @@ Generates a static file endpoint for serving a single file. `file` can be set to
       - `lookupCompressed` - if `true`, looks for the same filename with the '.gz' suffix
         for a pre-compressed version of the file to serve if the request supports content
         encoding. Defaults to `false`.
+      - `etagMethod` - specifies the method used to calculate the `ETag` header response.
+        Available values:
+          - `'hash'` - SHA1 sum of the file contents, suitable for distributed deployments.
+            Default value.
+          - `'simple'` - Hex encoded size and modification date, suitable when files are stored
+            on a single server.
+          - `false` - Disable ETag computation.
 
 ### The `directory` handler
 
@@ -222,5 +236,12 @@ object with the following options:
   - `lookupCompressed` - optional boolean, instructs the file processor to look for the same
     filename with the '.gz' suffix for a pre-compressed version of the file to serve if the
     request supports content encoding. Defaults to `false`.
+  - `etagMethod` - specifies the method used to calculate the `ETag` header response.
+    Available values:
+      - `'hash'` - SHA1 sum of the file contents, suitable for distributed deployments.
+        Default value.
+      - `'simple'` - Hex encoded size and modification date, suitable when files are stored
+        on a single server.
+      - `false` - Disable ETag computation.
   - `defaultExtension` - optional string, appended to file requests if the requested file is
     not found. Defaults to no extension.
