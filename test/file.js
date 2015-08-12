@@ -29,17 +29,17 @@ describe('file', function () {
 
     describe('handler()', function () {
 
-        var provisionServer = function (relativeTo, etagsCacheMaxSize) {
+        var provisionServer = function (connection, etagsCacheMaxSize) {
 
             var server = new Hapi.Server();
-            server.connection({ routes: { files: { relativeTo: relativeTo } } });
+            server.connection(connection || {});
             server.register(etagsCacheMaxSize !== undefined ? { register: Inert, options: { etagsCacheMaxSize: etagsCacheMaxSize } } : Inert, Hoek.ignore);
             return server;
         };
 
         it('returns a file in the response with the correct headers', function (done) {
 
-            var server = provisionServer(__dirname);
+            var server = provisionServer({ routes: { files: { relativeTo: __dirname } } });
             var handler = function (request, reply) {
 
                 reply.file('../package.json').code(499);
@@ -92,7 +92,7 @@ describe('file', function () {
 
         it('returns a file in the response with the inline content-disposition header when using route config', function (done) {
 
-            var server = provisionServer('./');
+            var server = provisionServer({ routes: { files: { relativeTo: './' } } });
             server.route({ method: 'GET', path: '/', handler: { file: { path: './package.json', mode: 'inline' } } });
 
             server.inject('/', function (res) {
@@ -107,7 +107,7 @@ describe('file', function () {
 
         it('returns a file in the response with the inline content-disposition header when using route config and overriding filename', function (done) {
 
-            var server = provisionServer('./');
+            var server = provisionServer({ routes: { files: { relativeTo: './' } } });
             server.route({ method: 'GET', path: '/', handler: { file: { path: './package.json', mode: 'inline', filename: 'attachment.json' } } });
 
             server.inject('/', function (res) {
@@ -167,7 +167,7 @@ describe('file', function () {
 
         it('returns a file with correct headers when using attachment mode', function (done) {
 
-            var server = provisionServer(__dirname);
+            var server = provisionServer({ routes: { files: { relativeTo: __dirname } } });
             var handler = function (request, reply) {
 
                 reply.file(Path.join(__dirname, '..', 'package.json'), { mode: 'attachment' });
@@ -187,7 +187,7 @@ describe('file', function () {
 
         it('returns a file with correct headers when using attachment mode and overriding the filename', function (done) {
 
-            var server = provisionServer(__dirname);
+            var server = provisionServer({ routes: { files: { relativeTo: __dirname } } });
             var handler = function (request, reply) {
 
                 reply.file(Path.join(__dirname, '..', 'package.json'), { mode: 'attachment', filename: 'attachment.json' });
@@ -207,7 +207,7 @@ describe('file', function () {
 
         it('returns a file with correct headers when using inline mode', function (done) {
 
-            var server = provisionServer(__dirname);
+            var server = provisionServer({ routes: { files: { relativeTo: __dirname } } });
             var handler = function (request, reply) {
 
                 reply.file(Path.join(__dirname, '..', 'package.json'), { mode: 'inline' });
@@ -227,7 +227,7 @@ describe('file', function () {
 
         it('returns a file with correct headers when using inline mode and overriding filename', function (done) {
 
-            var server = provisionServer(__dirname);
+            var server = provisionServer({ routes: { files: { relativeTo: __dirname } } });
             var handler = function (request, reply) {
 
                 reply.file(Path.join(__dirname, '..', 'package.json'), { mode: 'inline', filename: 'attachment.json' });
@@ -247,7 +247,7 @@ describe('file', function () {
 
         it('returns a 404 when the file is not found', function (done) {
 
-            var server = provisionServer('/no/such/path/x1');
+            var server = provisionServer({ routes: { files: { relativeTo: '/no/such/path/x1' } } });
 
             server.route({ method: 'GET', path: '/filenotfound', handler: { file: 'nopes' } });
 
@@ -273,7 +273,7 @@ describe('file', function () {
 
         it('returns a file using the build-in handler config', function (done) {
 
-            var server = provisionServer(__dirname);
+            var server = provisionServer({ routes: { files: { relativeTo: __dirname } } });
             server.route({ method: 'GET', path: '/staticfile', handler: { file: Path.join(__dirname, '..', 'package.json') } });
 
             server.inject('/staticfile', function (res) {
@@ -292,7 +292,7 @@ describe('file', function () {
                 return '../lib/' + request.params.file;
             };
 
-            var server = provisionServer(__dirname);
+            var server = provisionServer({ routes: { files: { relativeTo: __dirname } } });
             server.route({ method: 'GET', path: '/filefn/{file}', handler: { file: filenameFn } });
 
             server.inject('/filefn/index.js', function (res) {
@@ -306,7 +306,7 @@ describe('file', function () {
 
         it('returns a file in the response with the correct headers (relative path)', function (done) {
 
-            var server = provisionServer('.');
+            var server = provisionServer({ routes: { files: { relativeTo: '.' } } });
             var relativeHandler = function (request, reply) {
 
                 reply.file('./package.json');
@@ -325,7 +325,7 @@ describe('file', function () {
 
         it('returns a file using the built-in handler config (relative path)', function (done) {
 
-            var server = provisionServer(__dirname);
+            var server = provisionServer({ routes: { files: { relativeTo: __dirname } } });
             server.route({ method: 'GET', path: '/relativestaticfile', handler: { file: '../package.json' } });
 
             server.inject('/relativestaticfile', function (res) {
@@ -351,7 +351,7 @@ describe('file', function () {
 
         it('returns a file in the response with the correct headers using custom mime type', function (done) {
 
-            var server = provisionServer(__dirname);
+            var server = provisionServer({ routes: { files: { relativeTo: __dirname } } });
             var handler = function (request, reply) {
 
                 reply.file('../LICENSE').type('application/example');
@@ -368,7 +368,7 @@ describe('file', function () {
 
         it('does not cache etags', function (done) {
 
-            var server = provisionServer(__dirname, 0);
+            var server = provisionServer({ routes: { files: { relativeTo: __dirname } } }, 0);
             server.route({ method: 'GET', path: '/note', handler: { file: './file/note.txt' } });
 
             server.inject('/note', function (res) {
@@ -389,7 +389,7 @@ describe('file', function () {
 
         it('invalidates etags when file changes', function (done) {
 
-            var server = provisionServer(__dirname);
+            var server = provisionServer({ routes: { files: { relativeTo: __dirname } } });
 
             server.route({ method: 'GET', path: '/note', handler: { file: './file/note.txt' } });
 
@@ -724,7 +724,7 @@ describe('file', function () {
 
         it('returns a gzipped file in the response when the request accepts gzip', function (done) {
 
-            var server = provisionServer(__dirname);
+            var server = provisionServer({ routes: { files: { relativeTo: __dirname } } });
             var handler = function (request, reply) {
 
                 reply.file(Path.join(__dirname, '..', 'package.json'));
@@ -744,7 +744,7 @@ describe('file', function () {
 
         it('returns a plain file when not compressible', function (done) {
 
-            var server = provisionServer(__dirname);
+            var server = provisionServer({ routes: { files: { relativeTo: __dirname } } });
             var handler = function (request, reply) {
 
                 reply.file(Path.join(__dirname, 'file', 'image.png'));
@@ -764,7 +764,7 @@ describe('file', function () {
 
         it('returns a deflated file in the response when the request accepts deflate', function (done) {
 
-            var server = provisionServer(__dirname);
+            var server = provisionServer({ routes: { files: { relativeTo: __dirname } } });
             var handler = function (request, reply) {
 
                 reply.file(Path.join(__dirname, '..', 'package.json'));
@@ -836,6 +836,21 @@ describe('file', function () {
             server.inject('/file', function (res) {
 
                 expect(res.headers['content-type']).to.equal('image/png');
+                expect(res.headers['content-encoding']).to.not.exist();
+                expect(res.payload).to.exist();
+                done();
+            });
+        });
+
+        it('ignores precompressed file when connection compression is disabled', function (done) {
+
+            var server = provisionServer({ compression: false });
+            server.route({ method: 'GET', path: '/file', handler: { file: { path: './test/file/image.png', lookupCompressed: true } } });
+
+            server.inject({ url: '/file', headers: { 'accept-encoding': 'gzip' } }, function (res) {
+
+                expect(res.headers['content-type']).to.equal('image/png');
+                expect(res.headers['content-encoding']).to.not.exist();
                 expect(res.payload).to.exist();
                 done();
             });
