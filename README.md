@@ -39,9 +39,9 @@ The following creates a basic static file server that can be used to serve html 
 `public` directory on port 3000:
 
 ```js
-var Path = require('path');
 var Hapi = require('hapi');
 var Inert = require('inert');
+var Path = require('path');
 
 var server = new Hapi.Server({
     connections: {
@@ -52,29 +52,35 @@ var server = new Hapi.Server({
         }
     }
 });
+
 server.connection({ port: 3000 });
 
-server.register(Inert, function () {});
-
-server.route({
-    method: 'GET',
-    path: '/{param*}',
-    handler: {
-        directory: {
-            path: '.',
-            redirectToSlash: true,
-            index: true
-        }
-    }
-});
-
-server.start(function (err) {
+server.register(Inert, function (err) {
 
     if (err) {
         throw err;
     }
 
-    console.log('Server running at:', server.info.uri);
+    server.route({
+        method: 'GET',
+        path: '/{param*}',
+        handler: {
+            directory: {
+                path: '.',
+                redirectToSlash: true,
+                index: true
+            }
+        }
+    });
+
+    server.start(function (err) {
+
+        if (err) {
+            throw err;
+        }
+
+        console.log('Server running at:', server.info.uri);
+    });
 });
 ```
 
