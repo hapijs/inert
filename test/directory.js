@@ -832,5 +832,28 @@ describe('directory', function () {
                 done();
             });
         });
+
+        it('only stats the file system once when requesting a file', function (done) {
+
+            var orig = Fs.fstat;
+            var callCnt = 0;
+            Fs.fstat = function () {
+
+                callCnt++;
+                return orig.apply(Fs, arguments);
+            };
+
+            var server = provisionServer();
+            server.route({ method: 'GET', path: '/directory/{path*}', handler: { directory: { path: './' } } });
+
+            server.inject('/directory/directory.js', function (res) {
+
+                Fs.fstat = orig;
+                expect(callCnt).to.equal(1);
+                expect(res.statusCode).to.equal(200);
+                expect(res.payload).to.contain('hapi');
+                done();
+            });
+        });
     });
 });
