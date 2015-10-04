@@ -19,7 +19,7 @@
     "boom": "2.x.x",
     "hoek": "2.x.x",
     "items": "1.x.x",
-    "joi": "6.x.x",
+    "joi": "^6.7.x",
     "lru-cache": "2.6.x"
   },
   "devDependencies": {
