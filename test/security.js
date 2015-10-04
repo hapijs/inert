@@ -1,7 +1,7 @@
 // Load modules
 
 var Code = require('code');
-var Hapi = require('hapi');
+var Hapi = require('./helpers/hapi');
 var Hoek = require('hoek');
 var Inert = require('..');
 var Lab = require('lab');
@@ -25,7 +25,7 @@ describe('security', function () {
     var provisionServer = function () {
 
         var server = new Hapi.Server();
-        server.connection();
+        server.connection({ routes: { files: { relativeTo: __dirname } } });
         server.register(Inert, Hoek.ignore);
         return server;
     };
@@ -33,7 +33,6 @@ describe('security', function () {
     it('blocks path traversal to files outside of hosted directory is not allowed with null byte injection', function (done) {
 
         var server = provisionServer();
-        server.connection();
         server.route({ method: 'GET', path: '/{path*}', handler: { directory: { path: './directory' } } });
 
         server.inject('/%00/../security.js', function (res) {
