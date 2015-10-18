@@ -716,10 +716,13 @@ describe('file', function () {
 
             Items.parallel(['/file', '/file'], function (req, next) {
 
-                server.inject(req, function (res) {
+                setImmediate(function () {
 
-                    expect(res.statusCode).to.equal(500);
-                    next();
+                    server.inject(req, function (res) {
+
+                        expect(res.statusCode).to.equal(500);
+                        next();
+                    });
                 });
             }, done);
         });
