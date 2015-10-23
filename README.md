@@ -124,10 +124,6 @@ server.ext('onPostHandler', function (request, reply) {
 });
 ```
 
-Note that paths for files served using the `reply.file()` handler are **NOT** guarded against
-access outside the `files.relativeTo` directory, so be careful to guard against malevolent user
-input.
-
 ## Usage
 
 After registration, this plugin adds a new method to the `reply` object and exposes the `'file'`
@@ -150,6 +146,10 @@ type based on filename extension.:
 
   - `path` - the file path.
   - `options` - optional settings:
+      - `confine` - serve file relative to this directory and returns `403 Forbidden` if the
+        `path` resolves outside the `confine` directory.
+        Defaults to `true` which uses the `relativeTo` route option as the `confine`.
+        Set to `false` to disable this security feature.
       - `filename` - an optional filename to specify if sending a 'Content-Disposition' header,
         defaults to the basename of `path`
       - `mode` - specifies whether to include the 'Content-Disposition' header with the response.
@@ -182,6 +182,10 @@ Generates a static file endpoint for serving a single file. `file` can be set to
     file path.
   - an object with one or more of the following options:
       - `path` - a path string or function as described above (required).
+      - `confine` - serve file relative to this directory and returns `403 Forbidden` if the
+        `path` resolves outside the `confine` directory.
+        Defaults to `true` which uses the `relativeTo` route option as the `confine`.
+        Set to `false` to disable this security feature.
       - `filename` - an optional filename to specify if sending a 'Content-Disposition'
         header, defaults to the basename of `path`
       - `mode` - specifies whether to include the 'Content-Disposition' header with the
