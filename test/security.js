@@ -40,7 +40,7 @@ describe('security', () => {
 
         server.inject('/%00/../security.js', (res) => {
 
-            expect(res.statusCode).to.equal(403);
+            expect(res.statusCode).to.equal(404);
             done();
         });
     });
@@ -76,7 +76,7 @@ describe('security', () => {
 
         server.inject('/..%252Fsecurity.js', (res) => {
 
-            expect(res.statusCode).to.equal(403);
+            expect(res.statusCode).to.equal(404);
             done();
         });
     });
@@ -88,7 +88,7 @@ describe('security', () => {
 
         server.inject('/..\u2216security.js', (res) => {
 
-            expect(res.statusCode).to.equal(403);
+            expect(res.statusCode).to.equal(404);
             done();
         });
     });
