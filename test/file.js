@@ -71,6 +71,7 @@ describe('file', function () {
 
             server.inject('/file', function (res) {
 
+                expect(res.statusCode).to.equal(200);
                 expect(res.payload).to.contain('hapi');
                 done();
             });
@@ -83,6 +84,7 @@ describe('file', function () {
 
             server.inject('/', function (res) {
 
+                expect(res.statusCode).to.equal(200);
                 expect(res.payload).to.contain('hapi');
                 expect(res.headers['content-type']).to.equal('application/json; charset=utf-8');
                 expect(res.headers['content-length']).to.exist();
@@ -98,6 +100,7 @@ describe('file', function () {
 
             server.inject('/', function (res) {
 
+                expect(res.statusCode).to.equal(200);
                 expect(res.payload).to.contain('hapi');
                 expect(res.headers['content-type']).to.equal('application/json; charset=utf-8');
                 expect(res.headers['content-length']).to.exist();
@@ -113,6 +116,7 @@ describe('file', function () {
 
             server.inject('/', function (res) {
 
+                expect(res.statusCode).to.equal(200);
                 expect(res.payload).to.contain('hapi');
                 expect(res.headers['content-type']).to.equal('application/json; charset=utf-8');
                 expect(res.headers['content-length']).to.exist();
@@ -128,6 +132,7 @@ describe('file', function () {
 
             server.inject('/', function (res) {
 
+                expect(res.statusCode).to.equal(200);
                 expect(res.payload).to.contain('hapi');
                 expect(res.headers['content-type']).to.equal('application/json; charset=utf-8');
                 expect(res.headers['content-length']).to.exist();
@@ -143,6 +148,7 @@ describe('file', function () {
 
             server.inject('/', function (res) {
 
+                expect(res.statusCode).to.equal(200);
                 expect(res.payload).to.contain('hapi');
                 expect(res.headers['content-type']).to.equal('application/json; charset=utf-8');
                 expect(res.headers['content-length']).to.exist();
@@ -158,6 +164,7 @@ describe('file', function () {
 
             server.inject('/', function (res) {
 
+                expect(res.statusCode).to.equal(200);
                 expect(res.payload).to.contain('hapi');
                 expect(res.headers['content-type']).to.equal('application/json; charset=utf-8');
                 expect(res.headers['content-length']).to.exist();
@@ -178,6 +185,7 @@ describe('file', function () {
 
             server.inject('/file', function (res) {
 
+                expect(res.statusCode).to.equal(200);
                 expect(res.payload).to.contain('hapi');
                 expect(res.headers['content-type']).to.equal('application/json; charset=utf-8');
                 expect(res.headers['content-length']).to.exist();
@@ -198,6 +206,7 @@ describe('file', function () {
 
             server.inject('/file', function (res) {
 
+                expect(res.statusCode).to.equal(200);
                 expect(res.payload).to.contain('hapi');
                 expect(res.headers['content-type']).to.equal('application/json; charset=utf-8');
                 expect(res.headers['content-length']).to.exist();
@@ -218,6 +227,7 @@ describe('file', function () {
 
             server.inject('/file', function (res) {
 
+                expect(res.statusCode).to.equal(200);
                 expect(res.payload).to.contain('hapi');
                 expect(res.headers['content-type']).to.equal('application/json; charset=utf-8');
                 expect(res.headers['content-length']).to.exist();
@@ -238,6 +248,7 @@ describe('file', function () {
 
             server.inject('/file', function (res) {
 
+                expect(res.statusCode).to.equal(200);
                 expect(res.payload).to.contain('hapi');
                 expect(res.headers['content-type']).to.equal('application/json; charset=utf-8');
                 expect(res.headers['content-length']).to.exist();
@@ -272,13 +283,14 @@ describe('file', function () {
             });
         });
 
-        it('returns a file using the build-in handler config', function (done) {
+        it('returns a file using the built-in handler config', function (done) {
 
             var server = provisionServer({ routes: { files: { relativeTo: __dirname } } });
             server.route({ method: 'GET', path: '/staticfile', handler: { file: Path.join(__dirname, '..', 'package.json') } });
 
             server.inject('/staticfile', function (res) {
 
+                expect(res.statusCode).to.equal(200);
                 expect(res.payload).to.contain('hapi');
                 expect(res.headers['content-type']).to.equal('application/json; charset=utf-8');
                 expect(res.headers['content-length']).to.exist();
@@ -286,7 +298,7 @@ describe('file', function () {
             });
         });
 
-        it('returns a file using the file function with the build-in handler config', function (done) {
+        it('returns a file using the file function with the built-in handler config', function (done) {
 
             var filenameFn = function (request) {
 
@@ -298,6 +310,7 @@ describe('file', function () {
 
             server.inject('/filefn/index.js', function (res) {
 
+                expect(res.statusCode).to.equal(200);
                 expect(res.payload).to.contain('// Load modules');
                 expect(res.headers['content-type']).to.equal('application/javascript; charset=utf-8');
                 expect(res.headers['content-length']).to.exist();
@@ -317,6 +330,7 @@ describe('file', function () {
 
             server.inject('/relativefile', function (res) {
 
+                expect(res.statusCode).to.equal(200);
                 expect(res.payload).to.contain('hapi');
                 expect(res.headers['content-type']).to.equal('application/json; charset=utf-8');
                 expect(res.headers['content-length']).to.exist();
@@ -331,6 +345,7 @@ describe('file', function () {
 
             server.inject('/relativestaticfile', function (res) {
 
+                expect(res.statusCode).to.equal(200);
                 expect(res.payload).to.contain('hapi');
                 expect(res.headers['content-type']).to.equal('application/json; charset=utf-8');
                 expect(res.headers['content-length']).to.exist();
@@ -345,6 +360,7 @@ describe('file', function () {
 
             server.inject('/', function (res) {
 
+                expect(res.statusCode).to.equal(200);
                 expect(res.headers['content-type']).to.equal('application/octet-stream');
                 done();
             });
@@ -362,6 +378,7 @@ describe('file', function () {
 
             server.inject('/file', function (res) {
 
+                expect(res.statusCode).to.equal(200);
                 expect(res.headers['content-type']).to.equal('application/example');
                 done();
             });
@@ -858,6 +875,7 @@ describe('file', function () {
 
             server.inject({ url: '/file', headers: { 'accept-encoding': 'gzip' } }, function (res) {
 
+                expect(res.statusCode).to.equal(200);
                 expect(res.headers['content-type']).to.equal('application/json; charset=utf-8');
                 expect(res.headers['content-encoding']).to.equal('gzip');
                 expect(res.headers['content-length']).to.not.exist();
@@ -878,6 +896,7 @@ describe('file', function () {
 
             server.inject({ url: '/file', headers: { 'accept-encoding': 'gzip' } }, function (res) {
 
+                expect(res.statusCode).to.equal(200);
                 expect(res.headers['content-type']).to.equal('image/png');
                 expect(res.headers['content-encoding']).to.not.exist();
                 expect(res.headers['content-length']).to.equal(42010);
@@ -898,6 +917,7 @@ describe('file', function () {
 
             server.inject({ url: '/file', headers: { 'accept-encoding': 'deflate' } }, function (res) {
 
+                expect(res.statusCode).to.equal(200);
                 expect(res.headers['content-type']).to.equal('application/json; charset=utf-8');
                 expect(res.headers['content-encoding']).to.equal('deflate');
                 expect(res.headers['content-length']).to.not.exist();
@@ -915,6 +935,7 @@ describe('file', function () {
 
             server.inject({ url: '/file', headers: { 'accept-encoding': 'gzip' } }, function (res) {
 
+                expect(res.statusCode).to.equal(200);
                 expect(res.headers['content-type']).to.equal('image/png');
                 expect(res.headers['content-encoding']).to.equal('gzip');
                 expect(res.headers['content-length']).to.equal(content.length);
@@ -930,6 +951,7 @@ describe('file', function () {
 
             server.inject({ url: '/file', headers: { 'accept-encoding': 'gzip' } }, function (res) {
 
+                expect(res.statusCode).to.equal(200);
                 expect(res.headers['content-encoding']).to.equal('gzip');
                 expect(res.headers['content-length']).to.not.exist();
                 expect(res.payload).to.exist();
@@ -959,6 +981,7 @@ describe('file', function () {
 
             server.inject('/file', function (res) {
 
+                expect(res.statusCode).to.equal(200);
                 expect(res.headers['content-type']).to.equal('image/png');
                 expect(res.headers['content-encoding']).to.not.exist();
                 expect(res.payload).to.exist();
@@ -973,6 +996,7 @@ describe('file', function () {
 
             server.inject({ url: '/file', headers: { 'accept-encoding': 'gzip' } }, function (res) {
 
+                expect(res.statusCode).to.equal(200);
                 expect(res.headers['content-type']).to.equal('image/png');
                 expect(res.headers['content-encoding']).to.not.exist();
                 expect(res.payload).to.exist();
