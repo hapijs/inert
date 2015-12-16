@@ -1,12 +1,14 @@
+'use strict';
+
 // Load modules
 
-var Hoek = require('hoek');
-var Semver = require('semver');
+const Hoek = require('hoek');
+const Semver = require('semver');
 
 
 // Declare internals
 
-var internals = {};
+const internals = {};
 
 
 internals.hapiNodeVersion = Hoek.reach(require('hapi/package'), 'engines.node');
