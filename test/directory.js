@@ -1,83 +1,85 @@
+'use strict';
+
 // Load modules
 
-var Fs = require('fs');
-var Os = require('os');
-var Path = require('path');
-var Boom = require('boom');
-var Code = require('code');
-var Hapi = require('./helpers/hapi');
-var Hoek = require('hoek');
-var Inert = require('..');
-var Lab = require('lab');
+const Fs = require('fs');
+const Os = require('os');
+const Path = require('path');
+const Boom = require('boom');
+const Code = require('code');
+const Hapi = require('./helpers/hapi');
+const Hoek = require('hoek');
+const Inert = require('..');
+const Lab = require('lab');
 
 
 // Declare internals
 
-var internals = {};
+const internals = {};
 
 
 // Test shortcuts
 
-var lab = exports.lab = Lab.script();
-var describe = lab.describe;
-var it = lab.it;
-var expect = Code.expect;
+const lab = exports.lab = Lab.script();
+const describe = lab.describe;
+const it = lab.it;
+const expect = Code.expect;
 
 
-describe('directory', function () {
+describe('directory', () => {
 
-    describe('handler()', function () {
+    describe('handler()', () => {
 
-        var provisionServer = function (connection, debug) {
+        const provisionServer = function (connection, debug) {
 
-            var server = new Hapi.Server({ debug: debug });
+            const server = new Hapi.Server({ debug: debug });
             server.connection(connection || { routes: { files: { relativeTo: __dirname } }, router: { stripTrailingSlash: false } });
             server.register(Inert, Hoek.ignore);
             return server;
         };
 
-        it('returns a 403 when no index exists and listing is disabled', function (done) {
+        it('returns a 403 when no index exists and listing is disabled', (done) => {
 
-            var server = provisionServer();
+            const server = provisionServer();
             server.route({ method: 'GET', path: '/directory/{path*}', handler: { directory: { path: '.' } } });      // Use '.' to test path normalization
 
-            server.inject('/directory/', function (res) {
+            server.inject('/directory/', (res) => {
 
                 expect(res.statusCode).to.equal(403);
                 done();
             });
         });
 
-        it('returns a 403 when requesting a path containing \'..\'', function (done) {
+        it('returns a 403 when requesting a path containing \'..\'', (done) => {
 
-            var server = provisionServer();
+            const server = provisionServer();
             server.route({ method: 'GET', path: '/directory/{path*}', handler: { directory: { path: './' } } });
 
-            server.inject('/directory/..', function (res) {
+            server.inject('/directory/..', (res) => {
 
                 expect(res.statusCode).to.equal(403);
                 done();
             });
         });
 
-        it('returns a 404 when requesting an unknown file within a directory', function (done) {
+        it('returns a 404 when requesting an unknown file within a directory', (done) => {
 
-            var server = provisionServer();
+            const server = provisionServer();
             server.route({ method: 'GET', path: '/directory/{path*}', handler: { directory: { path: './' } } });
 
-            server.inject('/directory/xyz', function (res) {
+            server.inject('/directory/xyz', (res) => {
 
                 expect(res.statusCode).to.equal(404);
                 done();
             });
         });
 
-        it('returns a file when requesting a file from the directory', function (done) {
+        it('returns a file when requesting a file from the directory', (done) => {
 
-            var server = provisionServer();
+            const server = provisionServer();
             server.route({ method: 'GET', path: '/directory/{path*}', handler: { directory: { path: './' } } });
 
-            server.inject('/directory/directory.js', function (res) {
+            server.inject('/directory/directory.js', (res) => {
 
                 expect(res.statusCode).to.equal(200);
                 expect(res.payload).to.contain('hapi');
@@ -85,12 +87,12 @@ describe('directory', function () {
             });
         });
 
-        it('returns a file when requesting a file from multi directory setup', function (done) {
+        it('returns a file when requesting a file from multi directory setup', (done) => {
 
-            var server = provisionServer();
+            const server = provisionServer();
             server.route({ method: 'GET', path: '/multiple/{path*}', handler: { directory: { path: ['./', '../'], listing: true } } });
 
-            server.inject('/multiple/package.json', function (res) {
+            server.inject('/multiple/package.json', (res) => {
 
                 expect(res.statusCode).to.equal(200);
                 expect(res.payload).to.contain('name": "inert"');
@@ -98,9 +100,9 @@ describe('directory', function () {
             });
         });
 
-        it('returns a file when requesting a file from multi directory function response', function (done) {
+        it('returns a file when requesting a file from multi directory function response', (done) => {
 
-            var server = provisionServer();
+            const server = provisionServer();
             server.route({
                 method: 'GET',
                 path: '/multiple/{path*}',
@@ -115,7 +117,7 @@ describe('directory', function () {
                 }
             });
 
-            server.inject('/multiple/package.json', function (res) {
+            server.inject('/multiple/package.json', (res) => {
 
                 expect(res.statusCode).to.equal(200);
                 expect(res.payload).to.contain('name": "inert"');
@@ -123,12 +125,12 @@ describe('directory', function () {
             });
         });
 
-        it('returns the correct file when requesting a file from a child directory', function (done) {
+        it('returns the correct file when requesting a file from a child directory', (done) => {
 
-            var server = provisionServer();
+            const server = provisionServer();
             server.route({ method: 'GET', path: '/directory/{path*}', handler: { directory: { path: './' } } });
 
-            server.inject('/directory/directory/index.html', function (res) {
+            server.inject('/directory/directory/index.html', (res) => {
 
                 expect(res.statusCode).to.equal(200);
                 expect(res.payload).to.contain('test');
@@ -136,12 +138,12 @@ describe('directory', function () {
             });
         });
 
-        it('returns the correct listing links when viewing top level path', function (done) {
+        it('returns the correct listing links when viewing top level path', (done) => {
 
-            var server = provisionServer();
+            const server = provisionServer();
             server.route({ method: 'GET', path: '/{path*}', handler: { directory: { path: './', index: true, listing: true } } });
 
-            server.inject('/', function (res) {
+            server.inject('/', (res) => {
 
                 expect(res.statusCode).to.equal(200);
                 expect(res.payload).to.contain('href="/file.js"');
@@ -149,12 +151,12 @@ describe('directory', function () {
             });
         });
 
-        it('does not contain any double / when viewing sub path listing', function (done) {
+        it('does not contain any double / when viewing sub path listing', (done) => {
 
-            var server = provisionServer();
+            const server = provisionServer();
             server.route({ method: 'GET', path: '/showindex/{path*}', handler: { directory: { path: './', index: true, listing: true } } });
 
-            server.inject('/showindex/', function (res) {
+            server.inject('/showindex/', (res) => {
 
                 expect(res.statusCode).to.equal(200);
                 expect(res.payload).to.not.contain('//');
@@ -162,12 +164,12 @@ describe('directory', function () {
             });
         });
 
-        it('has the correct link to sub folders when inside of a sub folder listing', function (done) {
+        it('has the correct link to sub folders when inside of a sub folder listing', (done) => {
 
-            var server = provisionServer();
+            const server = provisionServer();
             server.route({ method: 'GET', path: '/showindex/{path*}', handler: { directory: { path: './', index: true, listing: true } } });
 
-            server.inject('/showindex/directory/subdir/', function (res) {
+            server.inject('/showindex/directory/subdir/', (res) => {
 
                 expect(res.statusCode).to.equal(200);
                 expect(res.payload).to.contain('href="/showindex/directory/subdir/subsubdir"');
@@ -175,12 +177,12 @@ describe('directory', function () {
             });
         });
 
-        it('has the correct link to a sub folder with spaces when inside of a sub folder listing', function (done) {
+        it('has the correct link to a sub folder with spaces when inside of a sub folder listing', (done) => {
 
-            var server = provisionServer();
+            const server = provisionServer();
             server.route({ method: 'GET', path: '/showindex/{path*}', handler: { directory: { path: './', index: true, listing: true } } });
 
-            server.inject('/showindex/directory/subdir/', function (res) {
+            server.inject('/showindex/directory/subdir/', (res) => {
 
                 expect(res.statusCode).to.equal(200);
                 expect(res.payload).to.contain('href="/showindex/directory/subdir/sub%20subdir%3D"');
@@ -188,12 +190,12 @@ describe('directory', function () {
             });
         });
 
-        it('has the correct link to a file when inside of a listing of a sub folder that is inside a subfolder with spaces', function (done) {
+        it('has the correct link to a file when inside of a listing of a sub folder that is inside a subfolder with spaces', (done) => {
 
-            var server = provisionServer();
+            const server = provisionServer();
             server.route({ method: 'GET', path: '/showindex/{path*}', handler: { directory: { path: './', index: true, listing: true } } });
 
-            server.inject('/showindex/directory/subdir/sub%20subdir%3D/subsubsubdir/', function (res) {
+            server.inject('/showindex/directory/subdir/sub%20subdir%3D/subsubsubdir/', (res) => {
 
                 expect(res.statusCode).to.equal(200);
                 expect(res.payload).to.contain('href="/showindex/directory/subdir/sub%20subdir%3D/subsubsubdir/test.txt"');
@@ -201,12 +203,12 @@ describe('directory', function () {
             });
         });
 
-        it('returns the correct file when requesting a file from a directory with spaces', function (done) {
+        it('returns the correct file when requesting a file from a directory with spaces', (done) => {
 
-            var server = provisionServer();
+            const server = provisionServer();
             server.route({ method: 'GET', path: '/directory/{path*}', handler: { directory: { path: './', index: true, listing: true } } });
 
-            server.inject('/directory/directory/subdir/sub%20subdir%3D/test%24.json', function (res) {
+            server.inject('/directory/directory/subdir/sub%20subdir%3D/test%24.json', (res) => {
 
                 expect(res.statusCode).to.equal(200);
                 expect(res.payload).to.equal('{"test":"test"}');
@@ -214,12 +216,12 @@ describe('directory', function () {
             });
         });
 
-        it('returns the correct file when requesting a file from a directory that its parent directory has spaces', function (done) {
+        it('returns the correct file when requesting a file from a directory that its parent directory has spaces', (done) => {
 
-            var server = provisionServer();
+            const server = provisionServer();
             server.route({ method: 'GET', path: '/directory/{path*}', handler: { directory: { path: './', index: true, listing: true } } });
 
-            server.inject('/directory/directory/subdir/sub%20subdir%3D/subsubsubdir/test.txt', function (res) {
+            server.inject('/directory/directory/subdir/sub%20subdir%3D/subsubsubdir/test.txt', (res) => {
 
                 expect(res.statusCode).to.equal(200);
                 expect(res.payload).to.equal('test');
@@ -227,24 +229,24 @@ describe('directory', function () {
             });
         });
 
-        it('returns a 403 when index and listing are disabled', function (done) {
+        it('returns a 403 when index and listing are disabled', (done) => {
 
-            var server = provisionServer();
+            const server = provisionServer();
             server.route({ method: 'GET', path: '/directoryx/{path*}', handler: { directory: { path: '../', index: false } } });
 
-            server.inject('/directoryx/', function (res) {
+            server.inject('/directoryx/', (res) => {
 
                 expect(res.statusCode).to.equal(403);
                 done();
             });
         });
 
-        it('returns a list of files when listing is enabled', function (done) {
+        it('returns a list of files when listing is enabled', (done) => {
 
-            var server = provisionServer();
+            const server = provisionServer();
             server.route({ method: 'GET', path: '/directorylist/{path*}', handler: { directory: { path: '../', listing: true } } });
 
-            server.inject('/directorylist/', function (res) {
+            server.inject('/directorylist/', (res) => {
 
                 expect(res.statusCode).to.equal(200);
                 expect(res.payload).to.contain('package.json');
@@ -252,12 +254,12 @@ describe('directory', function () {
             });
         });
 
-        it('returns a list of files for subdirectory', function (done) {
+        it('returns a list of files for subdirectory', (done) => {
 
-            var server = provisionServer();
+            const server = provisionServer();
             server.route({ method: 'GET', path: '/directorylist/{path*}', handler: { directory: { path: '../', listing: true } } });
 
-            server.inject('/directorylist/test/', function (res) {
+            server.inject('/directorylist/test/', (res) => {
 
                 expect(res.statusCode).to.equal(200);
                 expect(res.payload).to.contain('directory.js');
@@ -265,12 +267,12 @@ describe('directory', function () {
             });
         });
 
-        it('returns a list of files when listing is enabled and index disabled', function (done) {
+        it('returns a list of files when listing is enabled and index disabled', (done) => {
 
-            var server = provisionServer();
+            const server = provisionServer();
             server.route({ method: 'GET', path: '/directorylistx/{path*}', handler: { directory: { path: '../', listing: true, index: false } } });
 
-            server.inject('/directorylistx/', function (res) {
+            server.inject('/directorylistx/', (res) => {
 
                 expect(res.statusCode).to.equal(200);
                 expect(res.payload).to.contain('package.json');
@@ -278,12 +280,12 @@ describe('directory', function () {
             });
         });
 
-        it('returns the "index.html" index file when found and default index enabled', function (done) {
+        it('returns the "index.html" index file when found and default index enabled', (done) => {
 
-            var server = provisionServer();
+            const server = provisionServer();
             server.route({ method: 'GET', path: '/directoryIndex/{path*}', handler: { directory: { path: './directory/' } } });
 
-            server.inject('/directoryIndex/', function (res) {
+            server.inject('/directoryIndex/', (res) => {
 
                 expect(res.statusCode).to.equal(200);
                 expect(res.payload).to.contain('<p>test</p>');
@@ -291,12 +293,12 @@ describe('directory', function () {
             });
         });
 
-        it('returns the index file when found and single custom index file specified', function (done) {
+        it('returns the index file when found and single custom index file specified', (done) => {
 
-            var server = provisionServer();
+            const server = provisionServer();
             server.route({ method: 'GET', path: '/directoryIndex/{path*}', handler: { directory: { path: './directory/', index: 'index.js' } } });
 
-            server.inject('/directoryIndex/', function (res) {
+            server.inject('/directoryIndex/', (res) => {
 
                 expect(res.statusCode).to.equal(200);
                 expect(res.payload).to.contain('var isTest = true;');
@@ -304,12 +306,12 @@ describe('directory', function () {
             });
         });
 
-        it('returns the first index file found when an array of index files is specified', function (done) {
+        it('returns the first index file found when an array of index files is specified', (done) => {
 
-            var server = provisionServer();
+            const server = provisionServer();
             server.route({ method: 'GET', path: '/directoryIndex/{path*}', handler: { directory: { path: './directory/', index: ['default.html', 'index.js', 'non.existing'] } } });
 
-            server.inject('/directoryIndex/', function (res) {
+            server.inject('/directoryIndex/', (res) => {
 
                 expect(res.statusCode).to.equal(200);
                 expect(res.payload).to.contain('var isTest = true;');
@@ -317,41 +319,41 @@ describe('directory', function () {
             });
         });
 
-        it('returns a 403 when listing is disabled and a custom index file is specified but not found', function (done) {
+        it('returns a 403 when listing is disabled and a custom index file is specified but not found', (done) => {
 
-            var server = provisionServer();
+            const server = provisionServer();
             server.route({ method: 'GET', path: '/directoryIndex/{path*}', handler: { directory: { path: './directory/', index: 'default.html' } } });
 
-            server.inject('/directoryIndex/', function (res) {
+            server.inject('/directoryIndex/', (res) => {
 
                 expect(res.statusCode).to.equal(403);
                 done();
             });
         });
 
-        it('returns a 403 when listing is disabled and an array of index files is specified but none were found', function (done) {
+        it('returns a 403 when listing is disabled and an array of index files is specified but none were found', (done) => {
 
-            var server = provisionServer();
+            const server = provisionServer();
             server.route({ method: 'GET', path: '/directoryIndex/{path*}', handler: { directory: { path: './directory/', index: ['default.html', 'non.existing'] } } });
 
-            server.inject('/directoryIndex/', function (res) {
+            server.inject('/directoryIndex/', (res) => {
 
                 expect(res.statusCode).to.equal(403);
                 done();
             });
         });
 
-        it('returns the index when served from a hidden folder', function (done) {
+        it('returns the index when served from a hidden folder', (done) => {
 
-            var server = provisionServer();
+            const server = provisionServer();
             server.route({ method: 'GET', path: '/{path*}', handler: { directory: { path: './directory/.dot' } } });
 
-            server.inject('/index.html', function (res) {
+            server.inject('/index.html', (res) => {
 
                 expect(res.statusCode).to.equal(200);
                 expect(res.payload).to.contain('<p>test</p>');
 
-                server.inject('/', function (res2) {
+                server.inject('/', (res2) => {
 
                     expect(res2.statusCode).to.equal(200);
                     expect(res2.payload).to.contain('<p>test</p>');
@@ -360,12 +362,12 @@ describe('directory', function () {
             });
         });
 
-        it('returns listing when served from a hidden folder', function (done) {
+        it('returns listing when served from a hidden folder', (done) => {
 
-            var server = provisionServer();
+            const server = provisionServer();
             server.route({ method: 'GET', path: '/{path*}', handler: { directory: { path: './directory/.dot', index: false, listing: true } } });
 
-            server.inject('/', function (res) {
+            server.inject('/', (res) => {
 
                 expect(res.statusCode).to.equal(200);
                 expect(res.payload).to.contain('index.html');
@@ -373,41 +375,41 @@ describe('directory', function () {
             });
         });
 
-        it('returns a 500 when index.html is a directory', function (done) {
+        it('returns a 500 when index.html is a directory', (done) => {
 
-            var server = provisionServer(null, false);
+            const server = provisionServer(null, false);
             server.route({ method: 'GET', path: '/directoryIndex/{path*}', handler: { directory: { path: './directory/' } } });
 
-            server.inject('/directoryIndex/invalid/', function (res) {
+            server.inject('/directoryIndex/invalid/', (res) => {
 
                 expect(res.statusCode).to.equal(500);
                 done();
             });
         });
 
-        it('returns a 500 when the custom index is a directory', function (done) {
+        it('returns a 500 when the custom index is a directory', (done) => {
 
-            var server = provisionServer(null, false);
+            const server = provisionServer(null, false);
             server.route({ method: 'GET', path: '/directoryIndex/{path*}', handler: { directory: { path: './directory/', index: 'misc' } } });
 
-            server.inject('/directoryIndex/invalid/', function (res) {
+            server.inject('/directoryIndex/invalid/', (res) => {
 
                 expect(res.statusCode).to.equal(500);
                 done();
             });
         });
 
-        it('returns the correct file when using a fn directory handler', function (done) {
+        it('returns the correct file when using a fn directory handler', (done) => {
 
-            var directoryFn = function (request) {
+            const directoryFn = function (request) {
 
                 return '../lib';
             };
 
-            var server = provisionServer();
+            const server = provisionServer();
             server.route({ method: 'GET', path: '/directoryfn/{path?}', handler: { directory: { path: directoryFn } } });
 
-            server.inject('/directoryfn/index.js', function (res) {
+            server.inject('/directoryfn/index.js', (res) => {
 
                 expect(res.statusCode).to.equal(200);
                 expect(res.payload).to.contain('export');
@@ -415,24 +417,24 @@ describe('directory', function () {
             });
         });
 
-        it('returns listing with hidden files when hidden files should be shown', function (done) {
+        it('returns listing with hidden files when hidden files should be shown', (done) => {
 
-            var server = provisionServer();
+            const server = provisionServer();
             server.route({ method: 'GET', path: '/showhidden/{path*}', handler: { directory: { path: './', showHidden: true, listing: true } } });
 
-            server.inject('/showhidden/', function (res) {
+            server.inject('/showhidden/', (res) => {
 
                 expect(res.payload).to.contain('.hidden');
                 done();
             });
         });
 
-        it('returns listing without hidden files when hidden files should not be shown', function (done) {
+        it('returns listing without hidden files when hidden files should not be shown', (done) => {
 
-            var server = provisionServer();
+            const server = provisionServer();
             server.route({ method: 'GET', path: '/noshowhidden/{path*}', handler: { directory: { path: './', listing: true } } });
 
-            server.inject('/noshowhidden/', function (res) {
+            server.inject('/noshowhidden/', (res) => {
 
                 expect(res.payload).to.not.contain('.hidden');
                 expect(res.payload).to.contain('directory.js');
@@ -440,28 +442,28 @@ describe('directory', function () {
             });
         });
 
-        it('returns a 404 response when requesting a hidden file when showHidden is disabled', function (done) {
+        it('returns a 404 response when requesting a hidden file when showHidden is disabled', (done) => {
 
-            var server = provisionServer();
+            const server = provisionServer();
             server.route({ method: 'GET', path: '/noshowhidden/{path*}', handler: { directory: { path: './', listing: true } } });
 
-            server.inject('/noshowhidden/.hidden', function (res) {
+            server.inject('/noshowhidden/.hidden', (res) => {
 
                 expect(res.statusCode).to.equal(404);
                 done();
             });
         });
 
-        it('returns a 404 response when requesting a file in a hidden directory when showHidden is disabled', function (done) {
+        it('returns a 404 response when requesting a file in a hidden directory when showHidden is disabled', (done) => {
 
-            var server = provisionServer();
+            const server = provisionServer();
             server.route({ method: 'GET', path: '/noshowhidden/{path*}', handler: { directory: { path: './directory', listing: true } } });
 
-            server.inject('/noshowhidden/.dot/index.html', function (res) {
+            server.inject('/noshowhidden/.dot/index.html', (res) => {
 
                 expect(res.statusCode).to.equal(404);
 
-                server.inject('/noshowhidden/.dot/', function (res2) {
+                server.inject('/noshowhidden/.dot/', (res2) => {
 
                     expect(res2.statusCode).to.equal(404);
                     done();
@@ -469,41 +471,41 @@ describe('directory', function () {
             });
         });
 
-        it('returns a 404 response when requesting a hidden directory listing when showHidden is disabled', function (done) {
+        it('returns a 404 response when requesting a hidden directory listing when showHidden is disabled', (done) => {
 
-            var server = provisionServer();
+            const server = provisionServer();
             server.route({ method: 'GET', path: '/noshowhidden/{path*}', handler: { directory: { path: './directory', listing: true, index: false } } });
 
-            server.inject('/noshowhidden/.dot/', function (res) {
+            server.inject('/noshowhidden/.dot/', (res) => {
 
                 expect(res.statusCode).to.equal(404);
                 done();
             });
         });
 
-        it('returns a file when requesting a hidden file when showHidden is enabled', function (done) {
+        it('returns a file when requesting a hidden file when showHidden is enabled', (done) => {
 
-            var server = provisionServer();
+            const server = provisionServer();
             server.route({ method: 'GET', path: '/showhidden/{path*}', handler: { directory: { path: './', showHidden: true, listing: true } } });
 
-            server.inject('/showhidden/.hidden', function (res) {
+            server.inject('/showhidden/.hidden', (res) => {
 
                 expect(res.payload).to.contain('Ssssh!');
                 done();
             });
         });
 
-        it('returns a a file when requesting a file in a hidden directory when showHidden is enabled', function (done) {
+        it('returns a a file when requesting a file in a hidden directory when showHidden is enabled', (done) => {
 
-            var server = provisionServer();
+            const server = provisionServer();
             server.route({ method: 'GET', path: '/noshowhidden/{path*}', handler: { directory: { path: './directory', showHidden: true, listing: true } } });
 
-            server.inject('/noshowhidden/.dot/index.html', function (res) {
+            server.inject('/noshowhidden/.dot/index.html', (res) => {
 
                 expect(res.statusCode).to.equal(200);
                 expect(res.payload).to.contain('test');
 
-                server.inject('/noshowhidden/.dot/', function (res2) {
+                server.inject('/noshowhidden/.dot/', (res2) => {
 
                     expect(res2.statusCode).to.equal(200);
                     expect(res2.payload).to.contain('test');
@@ -512,12 +514,12 @@ describe('directory', function () {
             });
         });
 
-        it('redirects to the same path with / appended if asking for a directory', function (done) {
+        it('redirects to the same path with / appended if asking for a directory', (done) => {
 
-            var server = provisionServer();
+            const server = provisionServer();
             server.route({ method: 'GET', path: '/redirect/{path*}', handler: { directory: { path: './', index: true, listing: true } } });
 
-            server.inject('/redirect/directory/subdir', function (res) {
+            server.inject('/redirect/directory/subdir', (res) => {
 
                 expect(res.statusCode).to.equal(302);
                 expect(res.headers.location).to.equal('/redirect/directory/subdir/');
@@ -525,12 +527,12 @@ describe('directory', function () {
             });
         });
 
-        it('does not redirect to the same path with / appended redirectToSlash disabled', function (done) {
+        it('does not redirect to the same path with / appended redirectToSlash disabled', (done) => {
 
-            var server = provisionServer();
+            const server = provisionServer();
             server.route({ method: 'GET', path: '/redirect/{path*}', handler: { directory: { path: './', index: true, listing: true, redirectToSlash: false } } });
 
-            server.inject('http://example.com/redirect/directory/subdir', function (res) {
+            server.inject('http://example.com/redirect/directory/subdir', (res) => {
 
                 expect(res.statusCode).to.equal(200);
                 expect(res.result).to.contain('<html>');
@@ -538,12 +540,12 @@ describe('directory', function () {
             });
         });
 
-        it('does not redirect to the same path with / appended when server stripTrailingSlash is true', function (done) {
+        it('does not redirect to the same path with / appended when server stripTrailingSlash is true', (done) => {
 
-            var server = provisionServer({ routes: { files: { relativeTo: __dirname } }, router: { stripTrailingSlash: true } });
+            const server = provisionServer({ routes: { files: { relativeTo: __dirname } }, router: { stripTrailingSlash: true } });
             server.route({ method: 'GET', path: '/redirect/{path*}', handler: { directory: { path: './', index: true, listing: true } } });
 
-            server.inject('http://example.com/redirect/directory/subdir', function (res) {
+            server.inject('http://example.com/redirect/directory/subdir', (res) => {
 
                 expect(res.statusCode).to.equal(200);
                 expect(res.result).to.contain('<html>');
@@ -551,12 +553,12 @@ describe('directory', function () {
             });
         });
 
-        it('ignores unused path params', function (done) {
+        it('ignores unused path params', (done) => {
 
-            var server = provisionServer();
+            const server = provisionServer();
             server.route({ method: 'GET', path: '/{ignore}/4/{path*}', handler: { directory: { path: './' } } });
 
-            server.inject('/crap/4/file.js', function (res) {
+            server.inject('/crap/4/file.js', (res) => {
 
                 expect(res.statusCode).to.equal(200);
                 expect(res.payload).to.contain('hapi');
@@ -564,94 +566,94 @@ describe('directory', function () {
             });
         });
 
-        it('returns error when failing to prepare file response due to bad state', function (done) {
+        it('returns error when failing to prepare file response due to bad state', (done) => {
 
-            var server = provisionServer(null, false);
+            const server = provisionServer(null, false);
             server.route({ method: 'GET', path: '/directory/{path*}', handler: { directory: { path: './' } } });
 
-            server.ext('onRequest', function (request, reply) {
+            server.ext('onRequest', (request, reply) => {
 
                 reply.state('bad', {});
                 return reply.continue();
             });
 
-            server.inject('/directory/file.js', function (res) {
+            server.inject('/directory/file.js', (res) => {
 
                 expect(res.statusCode).to.equal(500);
                 done();
             });
         });
 
-        it('returns error when listing fails due to directory read error', { parallel: false }, function (done) {
+        it('returns error when listing fails due to directory read error', { parallel: false }, (done) => {
 
-            var server = provisionServer();
+            const server = provisionServer();
             server.route({ method: 'GET', path: '/directorylist/{path*}', handler: { directory: { path: '../', listing: true } } });
 
-            var orig = Fs.readdir;
-            Fs.readdir = function (path, callback) {
+            const orig = Fs.readdir;
+            Fs.readdir = (path, callback) => {
 
                 Fs.readdir = orig;
                 return callback(new Error('Simulated Directory Error'));
             };
 
-            server.inject('/directorylist/', function (res) {
+            server.inject('/directorylist/', (res) => {
 
                 expect(res.statusCode).to.equal(500);
                 done();
             });
         });
 
-        it('appends default extension', function (done) {
+        it('appends default extension', (done) => {
 
-            var server = provisionServer();
+            const server = provisionServer();
             server.route({ method: 'GET', path: '/directory/{path*}', handler: { directory: { path: __dirname, defaultExtension: 'html' } } });
 
-            server.inject('/directory/directory/index', function (res) {
+            server.inject('/directory/directory/index', (res) => {
 
                 expect(res.statusCode).to.equal(200);
                 done();
             });
         });
 
-        it('appends default extension when resource ends with /', function (done) {
+        it('appends default extension when resource ends with /', (done) => {
 
-            var server = provisionServer();
+            const server = provisionServer();
             server.route({ method: 'GET', path: '/directory/{path*}', handler: { directory: { path: __dirname, defaultExtension: 'html' } } });
 
-            server.inject('/directory/directory/index/', function (res) {
+            server.inject('/directory/directory/index/', (res) => {
 
                 expect(res.statusCode).to.equal(200);
                 done();
             });
         });
 
-        it('appends default extension and fails to find file', function (done) {
+        it('appends default extension and fails to find file', (done) => {
 
-            var server = provisionServer();
+            const server = provisionServer();
             server.route({ method: 'GET', path: '/directory/{path*}', handler: { directory: { path: __dirname, defaultExtension: 'html' } } });
 
-            server.inject('/directory/directory/none', function (res) {
+            server.inject('/directory/directory/none', (res) => {
 
                 expect(res.statusCode).to.equal(404);
                 done();
             });
         });
 
-        it('does not append default extension when directory exists', function (done) {
+        it('does not append default extension when directory exists', (done) => {
 
-            var server = provisionServer();
+            const server = provisionServer();
             server.route({ method: 'GET', path: '/directory/{path*}', handler: { directory: { path: __dirname, defaultExtension: 'html' } } });
 
-            server.inject('/directory/directory', function (res) {
+            server.inject('/directory/directory', (res) => {
 
                 expect(res.statusCode).to.equal(302);
                 done();
             });
         });
 
-        it('resolves path name from plugin using specified path', function (done) {
+        it('resolves path name from plugin using specified path', (done) => {
 
-            var plugin = function (server, options, next) {
+            const plugin = function (server, options, next) {
 
                 server.path(__dirname);
                 server.route({ method: 'GET', path: '/test/{path*}', config: { handler: { directory: { path: Path.join('.', 'directory'), index: false, listing: false } } } });
@@ -662,19 +664,19 @@ describe('directory', function () {
                 version: '1.0'
             };
 
-            var server = provisionServer({ router: { stripTrailingSlash: false } });
-            server.register({ register: plugin }, {}, function () { });
+            const server = provisionServer({ router: { stripTrailingSlash: false } });
+            server.register({ register: plugin }, {}, () => { });
 
-            server.inject('/test/index.html', function (res) {
+            server.inject('/test/index.html', (res) => {
 
                 expect(res.statusCode).to.equal(200);
                 done();
             });
         });
 
-        it('resolves path name from plugin using relative path', function (done) {
+        it('resolves path name from plugin using relative path', (done) => {
 
-            var plugin = function (server, options, next) {
+            const plugin = function (server, options, next) {
 
                 server.route({ method: 'GET', path: '/test/{path*}', config: { handler: { directory: { path: Path.join('.', 'test', 'directory'), index: false, listing: false } } } });
                 return next();
@@ -684,51 +686,51 @@ describe('directory', function () {
                 version: '1.0'
             };
 
-            var server = provisionServer({ router: { stripTrailingSlash: false } });
-            server.register({ register: plugin }, {}, function () { });
+            const server = provisionServer({ router: { stripTrailingSlash: false } });
+            server.register({ register: plugin }, {}, () => { });
 
-            server.inject('/test/index.html', function (res) {
+            server.inject('/test/index.html', (res) => {
 
                 expect(res.statusCode).to.equal(200);
                 done();
             });
         });
 
-        it('resolves root pathnames', function (done) {
+        it('resolves root pathnames', (done) => {
 
-            var server = provisionServer({ router: { stripTrailingSlash: false } });
+            const server = provisionServer({ router: { stripTrailingSlash: false } });
             server.route({ method: 'GET', path: '/test/{path*}', handler: { directory: { path: Path.join(__dirname, 'directory') } } });
 
-            server.inject('/test/index.html', function (res) {
+            server.inject('/test/index.html', (res) => {
 
                 expect(res.statusCode).to.equal(200);
                 done();
             });
         });
 
-        it('resolves relative pathnames', function (done) {
+        it('resolves relative pathnames', (done) => {
 
-            var server = provisionServer({ router: { stripTrailingSlash: false } });
+            const server = provisionServer({ router: { stripTrailingSlash: false } });
             server.route({ method: 'GET', path: '/test/{path*}', handler: { directory: { path: Path.join('.', 'test', 'directory') } } });
 
-            server.inject('/test/index.html', function (res) {
+            server.inject('/test/index.html', (res) => {
 
                 expect(res.statusCode).to.equal(200);
                 done();
             });
         });
 
-        it('returns error when path function returns error', function (done) {
+        it('returns error when path function returns error', (done) => {
 
-            var path = function () {
+            const path = () => {
 
                 return Boom.badRequest('Really?!');
             };
 
-            var server = provisionServer();
+            const server = provisionServer();
             server.route({ method: 'GET', path: '/test/{path*}', handler: { directory: { path: path } } });
 
-            server.inject('/test/index.html', function (res) {
+            server.inject('/test/index.html', (res) => {
 
                 expect(res.statusCode).to.equal(400);
                 expect(res.result.message).to.equal('Really?!');
@@ -736,75 +738,77 @@ describe('directory', function () {
             });
         });
 
-        it('returns error when path function returns invalid response', function (done) {
+        it('returns error when path function returns invalid response', (done) => {
 
-            var path = function () {
+            const path = function () {
 
                 return 5;
             };
 
-            var server = provisionServer(null, false);
+            const server = provisionServer(null, false);
             server.route({ method: 'GET', path: '/test/{path*}', handler: { directory: { path: path } } });
 
-            server.inject('/test/index.html', function (res) {
+            server.inject('/test/index.html', (res) => {
 
                 expect(res.statusCode).to.equal(500);
                 done();
             });
         });
 
-        it('returns a gzipped file using precompressed file', function (done) {
+        it('returns a gzipped file using precompressed file', (done) => {
 
-            var server = provisionServer();
+            const server = provisionServer();
             server.route({ method: 'GET', path: '/{p*}', handler: { directory: { path: './file', lookupCompressed: true } } });
 
-            server.inject({ url: '/image.png', headers: { 'accept-encoding': 'gzip' } }, function (res) {
+            server.inject({ url: '/image.png', headers: { 'accept-encoding': 'gzip' } }, (res) => {
 
                 expect(res.headers['content-type']).to.equal('image/png');
                 expect(res.headers['content-encoding']).to.equal('gzip');
 
-                var content = Fs.readFileSync('./test/file/image.png.gz');
+                const content = Fs.readFileSync('./test/file/image.png.gz');
                 expect(res.headers['content-length']).to.equal(content.length);
                 expect(res.rawPayload.length).to.equal(content.length);
                 done();
             });
         });
 
-        it('respects the etagMethod option', function (done) {
+        it('respects the etagMethod option', (done) => {
 
-            var server = provisionServer();
+            const server = provisionServer();
             server.route({ method: 'GET', path: '/{p*}', handler: { directory: { path: './file', etagMethod: 'simple' } } });
 
-            server.inject('/image.png', function (res) {
+            server.inject('/image.png', (res) => {
 
                 expect(res.headers.etag).to.match(/^".+-.+"$/);
                 done();
             });
         });
 
-        it('returns a 403 when missing file read permission', function (done) {
+        it('returns a 403 when missing file read permission', (done) => {
 
-            var filename = Hoek.uniqueFilename(Os.tmpDir());
+            const filename = Hoek.uniqueFilename(Os.tmpDir());
             Fs.writeFileSync(filename, 'data');
 
-            var fd;
+            let fd;
             if (process.platform === 'win32') {
                 // make a permissionless file by unlinking an open file
                 fd = Fs.openSync(filename, 'r');
                 Fs.unlinkSync(filename);
-            } else {
+            }
+            else {
                 Fs.chmodSync(filename, 0);
             }
 
-            var server = provisionServer();
+            const server = provisionServer();
             server.route({ method: 'GET', path: '/test/{path*}', handler: { directory: { path: Path.dirname(filename) } } });
 
-            server.inject('/test/' + Path.basename(filename), function (res) {
+            server.inject('/test/' + Path.basename(filename), (res) => {
 
                 // cleanup
                 if (typeof fd === 'number') {
                     Fs.closeSync(fd);
-                } else {
+                }
+                else {
                     Fs.unlinkSync(filename);
                 }
 
@@ -813,52 +817,52 @@ describe('directory', function () {
             });
         });
 
-        it('returns error when a file open fails', function (done) {
+        it('returns error when a file open fails', (done) => {
 
-            var orig = Fs.open;
+            const orig = Fs.open;
             Fs.open = function () {        // can return EMFILE error
 
                 Fs.open = orig;
-                var callback = arguments[arguments.length - 1];
+                const callback = arguments[arguments.length - 1];
                 callback(new Error('failed'));
             };
 
-            var server = provisionServer();
+            const server = provisionServer();
             server.route({ method: 'GET', path: '/test/{path*}', handler: { directory: { path: './' } } });
 
-            server.inject('/test/fail', function (res) {
+            server.inject('/test/fail', (res) => {
 
                 expect(res.statusCode).to.equal(500);
                 done();
             });
         });
 
-        it('returns a 404 for null byte paths', function (done) {
+        it('returns a 404 for null byte paths', (done) => {
 
-            var server = provisionServer();
+            const server = provisionServer();
             server.route({ method: 'GET', path: '/{path*}', handler: { directory: { path: './' } } });
 
-            server.inject('/index%00.html', function (res) {
+            server.inject('/index%00.html', (res) => {
 
                 expect(res.statusCode).to.equal(404);
                 done();
             });
         });
 
-        it('only stats the file system once when requesting a file', function (done) {
+        it('only stats the file system once when requesting a file', (done) => {
 
-            var orig = Fs.fstat;
-            var callCnt = 0;
+            const orig = Fs.fstat;
+            let callCnt = 0;
             Fs.fstat = function () {
 
                 callCnt++;
                 return orig.apply(Fs, arguments);
             };
 
-            var server = provisionServer();
+            const server = provisionServer();
             server.route({ method: 'GET', path: '/directory/{path*}', handler: { directory: { path: './' } } });
 
-            server.inject('/directory/directory.js', function (res) {
+            server.inject('/directory/directory.js', (res) => {
 
                 Fs.fstat = orig;
                 expect(callCnt).to.equal(1);

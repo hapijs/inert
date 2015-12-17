@@ -1,101 +1,103 @@
+'use strict';
+
 // Load modules
 
-var Code = require('code');
-var Hapi = require('./helpers/hapi');
-var Hoek = require('hoek');
-var Inert = require('..');
-var Lab = require('lab');
+const Code = require('code');
+const Hapi = require('./helpers/hapi');
+const Hoek = require('hoek');
+const Inert = require('..');
+const Lab = require('lab');
 
 
 // Declare internals
 
-var internals = {};
+const internals = {};
 
 
 // Test shortcuts
 
-var lab = exports.lab = Lab.script();
-var describe = lab.describe;
-var it = lab.it;
-var expect = Code.expect;
+const lab = exports.lab = Lab.script();
+const describe = lab.describe;
+const it = lab.it;
+const expect = Code.expect;
 
 
-describe('security', function () {
+describe('security', () => {
 
-    var provisionServer = function () {
+    const provisionServer = () => {
 
-        var server = new Hapi.Server();
+        const server = new Hapi.Server();
         server.connection({ routes: { files: { relativeTo: __dirname } } });
         server.register(Inert, Hoek.ignore);
         return server;
     };
 
-    it('blocks path traversal to files outside of hosted directory is not allowed with null byte injection', function (done) {
+    it('blocks path traversal to files outside of hosted directory is not allowed with null byte injection', (done) => {
 
-        var server = provisionServer();
+        const server = provisionServer();
         server.route({ method: 'GET', path: '/{path*}', handler: { directory: { path: './directory' } } });
 
-        server.inject('/%00/../security.js', function (res) {
+        server.inject('/%00/../security.js', (res) => {
 
             expect(res.statusCode).to.equal(403);
             done();
         });
     });
 
-    it('blocks path traversal to files outside of hosted directory is not allowed', function (done) {
+    it('blocks path traversal to files outside of hosted directory is not allowed', (done) => {
 
-        var server = provisionServer();
+        const server = provisionServer();
         server.route({ method: 'GET', path: '/{path*}', handler: { directory: { path: './directory' } } });
 
-        server.inject('/../security.js', function (res) {
+        server.inject('/../security.js', (res) => {
 
             expect(res.statusCode).to.equal(403);
             done();
         });
     });
 
-    it('blocks path traversal to files outside of hosted directory is not allowed with encoded slash', function (done) {
+    it('blocks path traversal to files outside of hosted directory is not allowed with encoded slash', (done) => {
 
-        var server = provisionServer();
+        const server = provisionServer();
         server.route({ method: 'GET', path: '/{path*}', handler: { directory: { path: './directory' } } });
 
-        server.inject('/..%2Fsecurity.js', function (res) {
+        server.inject('/..%2Fsecurity.js', (res) => {
 
             expect(res.statusCode).to.equal(403);
             done();
         });
     });
 
-    it('blocks path traversal to files outside of hosted directory is not allowed with double encoded slash', function (done) {
+    it('blocks path traversal to files outside of hosted directory is not allowed with double encoded slash', (done) => {
 
-        var server = provisionServer();
+        const server = provisionServer();
         server.route({ method: 'GET', path: '/{path*}', handler: { directory: { path: './directory' } } });
 
-        server.inject('/..%252Fsecurity.js', function (res) {
+        server.inject('/..%252Fsecurity.js', (res) => {
 
             expect(res.statusCode).to.equal(403);
             done();
         });
     });
 
-    it('blocks path traversal to files outside of hosted directory is not allowed with unicode encoded slash', function (done) {
+    it('blocks path traversal to files outside of hosted directory is not allowed with unicode encoded slash', (done) => {
 
-        var server = provisionServer();
+        const server = provisionServer();
         server.route({ method: 'GET', path: '/{path*}', handler: { directory: { path: './directory' } } });
 
-        server.inject('/..\u2216security.js', function (res) {
+        server.inject('/..\u2216security.js', (res) => {
 
             expect(res.statusCode).to.equal(403);
             done();
         });
     });
 
-    it('blocks null byte injection when serving a file', function (done) {
+    it('blocks null byte injection when serving a file', (done) => {
 
-        var server = provisionServer();
+        const server = provisionServer();
         server.route({ method: 'GET', path: '/{path*}', handler: { directory: { path: './directory' } } });
 
-        server.inject('/index%00.html', function (res) {
+        server.inject('/index%00.html', (res) => {
 
             expect(res.statusCode).to.equal(404);
             done();

@@ -1,54 +1,56 @@
+'use strict';
+
 // Load modules
 
-var ChildProcess = require('child_process');
-var Fs = require('fs');
-var Os = require('os');
-var Path = require('path');
-var Boom = require('boom');
-var Code = require('code');
-var Hapi = require('./helpers/hapi');
-var Hoek = require('hoek');
-var Items = require('items');
-var Inert = require('..');
-var Lab = require('lab');
+const ChildProcess = require('child_process');
+const Fs = require('fs');
+const Os = require('os');
+const Path = require('path');
+const Boom = require('boom');
+const Code = require('code');
+const Hapi = require('./helpers/hapi');
+const Hoek = require('hoek');
+const Items = require('items');
+const Inert = require('..');
+const Lab = require('lab');
 
 
 // Declare internals
 
-var internals = {};
+const internals = {};
 
 
 // Test shortcuts
 
-var lab = exports.lab = Lab.script();
-var describe = lab.describe;
-var it = lab.it;
-var expect = Code.expect;
+const lab = exports.lab = Lab.script();
+const describe = lab.describe;
+const it = lab.it;
+const expect = Code.expect;
 
 
-describe('file', function () {
+describe('file', () => {
 
-    describe('handler()', function () {
+    describe('handler()', () => {
 
-        var provisionServer = function (connection, etagsCacheMaxSize) {
+        const provisionServer = (connection, etagsCacheMaxSize) => {
 
-            var server = new Hapi.Server();
+            const server = new Hapi.Server();
             server.connection(connection || {});
             server.register(etagsCacheMaxSize !== undefined ? { register: Inert, options: { etagsCacheMaxSize: etagsCacheMaxSize } } : Inert, Hoek.ignore);
             return server;
         };
 
-        it('returns a file in the response with the correct headers', function (done) {
+        it('returns a file in the response with the correct headers', (done) => {
 
-            var server = provisionServer({ routes: { files: { relativeTo: __dirname } } });
-            var handler = function (request, reply) {
+            const server = provisionServer({ routes: { files: { relativeTo: __dirname } } });
+            const handler = (request, reply) => {
 
                 reply.file('../package.json').code(499);
             };
 
             server.route({ method: 'GET', path: '/file', handler: handler });
 
-            server.inject('/file', function (res) {
+            server.inject('/file', (res) => {
 
                 expect(res.statusCode).to.equal(499);
                 expect(res.payload).to.contain('hapi');
@@ -59,17 +61,17 @@ describe('file', function () {
             });
         });
 
-        it('returns a file using route relativeTo', function (done) {
+        it('returns a file using route relativeTo', (done) => {
 
-            var server = provisionServer();
-            var handler = function (request, reply) {
+            const server = provisionServer();
+            const handler = (request, reply) => {
 
                 reply.file('../package.json');
             };
 
             server.route({ method: 'GET', path: '/file', handler: handler, config: { files: { relativeTo: __dirname } } });
 
-            server.inject('/file', function (res) {
+            server.inject('/file', (res) => {
 
                 expect(res.statusCode).to.equal(200);
                 expect(res.payload).to.contain('hapi');
@@ -77,12 +79,12 @@ describe('file', function () {
             });
         });
 
-        it('returns a file in the response with the correct headers using cwd relative paths without content-disposition header', function (done) {
+        it('returns a file in the response with the correct headers using cwd relative paths without content-disposition header', (done) => {
 
-            var server = provisionServer();
+            const server = provisionServer();
             server.route({ method: 'GET', path: '/', handler: { file: './package.json' } });
 
-            server.inject('/', function (res) {
+            server.inject('/', (res) => {
 
                 expect(res.statusCode).to.equal(200);
                 expect(res.payload).to.contain('hapi');
@@ -93,12 +95,12 @@ describe('file', function () {
             });
         });
 
-        it('returns a file in the response with the inline content-disposition header when using route config', function (done) {
+        it('returns a file in the response with the inline content-disposition header when using route config', (done) => {
 
-            var server = provisionServer({ routes: { files: { relativeTo: './' } } });
+            const server = provisionServer({ routes: { files: { relativeTo: './' } } });
             server.route({ method: 'GET', path: '/', handler: { file: { path: './package.json', mode: 'inline' } } });
 
-            server.inject('/', function (res) {
+            server.inject('/', (res) => {
 
                 expect(res.statusCode).to.equal(200);
                 expect(res.payload).to.contain('hapi');
@@ -109,12 +111,12 @@ describe('file', function () {
             });
         });
 
-        it('returns a file in the response with the inline content-disposition header when using route config and overriding filename', function (done) {
+        it('returns a file in the response with the inline content-disposition header when using route config and overriding filename', (done) => {
 
-            var server = provisionServer({ routes: { files: { relativeTo: './' } } });
+            const server = provisionServer({ routes: { files: { relativeTo: './' } } });
             server.route({ method: 'GET', path: '/', handler: { file: { path: './package.json', mode: 'inline', filename: 'attachment.json' } } });
 
-            server.inject('/', function (res) {
+            server.inject('/', (res) => {
 
                 expect(res.statusCode).to.equal(200);
                 expect(res.payload).to.contain('hapi');
@@ -125,12 +127,12 @@ describe('file', function () {
             });
         });
 
-        it('returns a file in the response with the attachment content-disposition header when using route config', function (done) {
+        it('returns a file in the response with the attachment content-disposition header when using route config', (done) => {
 
-            var server = provisionServer();
+            const server = provisionServer();
             server.route({ method: 'GET', path: '/', handler: { file: { path: './package.json', mode: 'attachment' } } });
 
-            server.inject('/', function (res) {
+            server.inject('/', (res) => {
 
                 expect(res.statusCode).to.equal(200);
                 expect(res.payload).to.contain('hapi');
@@ -141,12 +143,12 @@ describe('file', function () {
             });
         });
 
-        it('returns a file in the response with the attachment content-disposition header when using route config and overriding filename', function (done) {
+        it('returns a file in the response with the attachment content-disposition header when using route config and overriding filename', (done) => {
 
-            var server = provisionServer();
+            const server = provisionServer();
             server.route({ method: 'GET', path: '/', handler: { file: { path: './package.json', mode: 'attachment', filename: 'attachment.json' } } });
 
-            server.inject('/', function (res) {
+            server.inject('/', (res) => {
 
                 expect(res.statusCode).to.equal(200);
                 expect(res.payload).to.contain('hapi');
@@ -157,12 +159,12 @@ describe('file', function () {
             });
         });
 
-        it('returns a file in the response without the content-disposition header when using route config mode false', function (done) {
+        it('returns a file in the response without the content-disposition header when using route config mode false', (done) => {
 
-            var server = provisionServer();
+            const server = provisionServer();
             server.route({ method: 'GET', path: '/', handler: { file: { path: './package.json', mode: false } } });
 
-            server.inject('/', function (res) {
+            server.inject('/', (res) => {
 
                 expect(res.statusCode).to.equal(200);
                 expect(res.payload).to.contain('hapi');
@@ -173,17 +175,17 @@ describe('file', function () {
             });
         });
 
-        it('returns a file with correct headers when using attachment mode', function (done) {
+        it('returns a file with correct headers when using attachment mode', (done) => {
 
-            var server = provisionServer({ routes: { files: { relativeTo: __dirname } } });
-            var handler = function (request, reply) {
+            const server = provisionServer({ routes: { files: { relativeTo: __dirname } } });
+            const handler = (request, reply) => {
 
                 reply.file(Path.join(__dirname, '..', 'package.json'), { mode: 'attachment' });
             };
 
             server.route({ method: 'GET', path: '/file', handler: handler });
 
-            server.inject('/file', function (res) {
+            server.inject('/file', (res) => {
 
                 expect(res.statusCode).to.equal(200);
                 expect(res.payload).to.contain('hapi');
@@ -194,17 +196,17 @@ describe('file', function () {
             });
         });
 
-        it('returns a file with correct headers when using attachment mode and overriding the filename', function (done) {
+        it('returns a file with correct headers when using attachment mode and overriding the filename', (done) => {
 
-            var server = provisionServer({ routes: { files: { relativeTo: __dirname } } });
-            var handler = function (request, reply) {
+            const server = provisionServer({ routes: { files: { relativeTo: __dirname } } });
+            const handler = (request, reply) => {
 
                 reply.file(Path.join(__dirname, '..', 'package.json'), { mode: 'attachment', filename: 'attachment.json' });
             };
 
             server.route({ method: 'GET', path: '/file', handler: handler });
 
-            server.inject('/file', function (res) {
+            server.inject('/file', (res) => {
 
                 expect(res.statusCode).to.equal(200);
                 expect(res.payload).to.contain('hapi');
@@ -215,17 +217,17 @@ describe('file', function () {
             });
         });
 
-        it('returns a file with correct headers when using inline mode', function (done) {
+        it('returns a file with correct headers when using inline mode', (done) => {
 
-            var server = provisionServer({ routes: { files: { relativeTo: __dirname } } });
-            var handler = function (request, reply) {
+            const server = provisionServer({ routes: { files: { relativeTo: __dirname } } });
+            const handler = (request, reply) => {
 
                 reply.file(Path.join(__dirname, '..', 'package.json'), { mode: 'inline' });
             };
 
             server.route({ method: 'GET', path: '/file', handler: handler });
 
-            server.inject('/file', function (res) {
+            server.inject('/file', (res) => {
 
                 expect(res.statusCode).to.equal(200);
                 expect(res.payload).to.contain('hapi');
@@ -236,17 +238,17 @@ describe('file', function () {
             });
         });
 
-        it('returns a file with correct headers when using inline mode and overriding filename', function (done) {
+        it('returns a file with correct headers when using inline mode and overriding filename', (done) => {
 
-            var server = provisionServer({ routes: { files: { relativeTo: __dirname } } });
-            var handler = function (request, reply) {
+            const server = provisionServer({ routes: { files: { relativeTo: __dirname } } });
+            const handler = (request, reply) => {
 
                 reply.file(Path.join(__dirname, '..', 'package.json'), { mode: 'inline', filename: 'attachment.json' });
             };
 
             server.route({ method: 'GET', path: '/file', handler: handler });
 
-            server.inject('/file', function (res) {
+            server.inject('/file', (res) => {
 
                 expect(res.statusCode).to.equal(200);
                 expect(res.payload).to.contain('hapi');
@@ -257,38 +259,38 @@ describe('file', function () {
             });
         });
 
-        it('returns a 404 when the file is not found', function (done) {
+        it('returns a 404 when the file is not found', (done) => {
 
-            var server = provisionServer({ routes: { files: { relativeTo: '/no/such/path/x1' } } });
+            const server = provisionServer({ routes: { files: { relativeTo: '/no/such/path/x1' } } });
 
             server.route({ method: 'GET', path: '/filenotfound', handler: { file: 'nopes' } });
 
-            server.inject('/filenotfound', function (res) {
+            server.inject('/filenotfound', (res) => {
 
                 expect(res.statusCode).to.equal(404);
                 done();
             });
         });
 
-        it('returns a 403 when the file is a directory', function (done) {
+        it('returns a 403 when the file is a directory', (done) => {
 
-            var server = provisionServer();
+            const server = provisionServer();
 
             server.route({ method: 'GET', path: '/filefolder', handler: { file: 'lib' } });
 
-            server.inject('/filefolder', function (res) {
+            server.inject('/filefolder', (res) => {
 
                 expect(res.statusCode).to.equal(403);
                 done();
             });
         });
 
-        it('returns a file using the built-in handler config', function (done) {
+        it('returns a file using the built-in handler config', (done) => {
 
-            var server = provisionServer({ routes: { files: { relativeTo: __dirname } } });
+            const server = provisionServer({ routes: { files: { relativeTo: __dirname } } });
             server.route({ method: 'GET', path: '/staticfile', handler: { file: Path.join(__dirname, '..', 'package.json') } });
 
-            server.inject('/staticfile', function (res) {
+            server.inject('/staticfile', (res) => {
 
                 expect(res.statusCode).to.equal(200);
                 expect(res.payload).to.contain('hapi');
@@ -298,17 +300,17 @@ describe('file', function () {
             });
         });
 
-        it('returns a file using the file function with the built-in handler config', function (done) {
+        it('returns a file using the file function with the built-in handler config', (done) => {
 
-            var filenameFn = function (request) {
+            const filenameFn = function (request) {
 
                 return '../lib/' + request.params.file;
             };
 
-            var server = provisionServer({ routes: { files: { relativeTo: __dirname } } });
+            const server = provisionServer({ routes: { files: { relativeTo: __dirname } } });
             server.route({ method: 'GET', path: '/filefn/{file}', handler: { file: filenameFn } });
 
-            server.inject('/filefn/index.js', function (res) {
+            server.inject('/filefn/index.js', (res) => {
 
                 expect(res.statusCode).to.equal(200);
                 expect(res.payload).to.contain('// Load modules');
@@ -318,17 +320,17 @@ describe('file', function () {
             });
         });
 
-        it('returns a file in the response with the correct headers (relative path)', function (done) {
+        it('returns a file in the response with the correct headers (relative path)', (done) => {
 
-            var server = provisionServer({ routes: { files: { relativeTo: '.' } } });
-            var relativeHandler = function (request, reply) {
+            const server = provisionServer({ routes: { files: { relativeTo: '.' } } });
+            const relativeHandler = (request, reply) => {
 
                 reply.file('./package.json');
             };
 
             server.route({ method: 'GET', path: '/relativefile', handler: relativeHandler });
 
-            server.inject('/relativefile', function (res) {
+            server.inject('/relativefile', (res) => {
 
                 expect(res.statusCode).to.equal(200);
                 expect(res.payload).to.contain('hapi');
@@ -338,12 +340,12 @@ describe('file', function () {
             });
         });
 
-        it('returns a file using the built-in handler config (relative path)', function (done) {
+        it('returns a file using the built-in handler config (relative path)', (done) => {
 
-            var server = provisionServer({ routes: { files: { relativeTo: __dirname } } });
+            const server = provisionServer({ routes: { files: { relativeTo: __dirname } } });
             server.route({ method: 'GET', path: '/relativestaticfile', handler: { file: '../package.json' } });
 
-            server.inject('/relativestaticfile', function (res) {
+            server.inject('/relativestaticfile', (res) => {
 
                 expect(res.statusCode).to.equal(200);
                 expect(res.payload).to.contain('hapi');
@@ -353,12 +355,12 @@ describe('file', function () {
             });
         });
 
-        it('returns a file with default mime type', function (done) {
+        it('returns a file with default mime type', (done) => {
 
-            var server = provisionServer();
+            const server = provisionServer();
             server.route({ method: 'GET', path: '/', handler: { file: Path.join(__dirname, '..', 'LICENSE') } });
 
-            server.inject('/', function (res) {
+            server.inject('/', (res) => {
 
                 expect(res.statusCode).to.equal(200);
                 expect(res.headers['content-type']).to.equal('application/octet-stream');
@@ -366,17 +368,17 @@ describe('file', function () {
             });
         });
 
-        it('returns a file in the response with the correct headers using custom mime type', function (done) {
+        it('returns a file in the response with the correct headers using custom mime type', (done) => {
 
-            var server = provisionServer({ routes: { files: { relativeTo: __dirname } } });
-            var handler = function (request, reply) {
+            const server = provisionServer({ routes: { files: { relativeTo: __dirname } } });
+            const handler = (request, reply) => {
 
                 reply.file('../LICENSE').type('application/example');
             };
 
             server.route({ method: 'GET', path: '/file', handler: handler });
 
-            server.inject('/file', function (res) {
+            server.inject('/file', (res) => {
 
                 expect(res.statusCode).to.equal(200);
                 expect(res.headers['content-type']).to.equal('application/example');
@@ -384,14 +386,14 @@ describe('file', function () {
             });
         });
 
-        it('handles multiple simultaneous requests', function (done) {
+        it('handles multiple simultaneous requests', (done) => {
 
-            var server = provisionServer();
+            const server = provisionServer();
             server.route({ method: 'GET', path: '/file', handler: { file: Path.join(__dirname, '..', 'package.json') } });
 
-            Items.parallel(['/file', '/file'], function (req, next) {
+            Items.parallel(['/file', '/file'], (req, next) => {
 
-                server.inject(req, function (res) {
+                server.inject(req, (res) => {
 
                     expect(res.statusCode).to.equal(200);
                     expect(res.headers).to.include('etag');
@@ -401,18 +403,18 @@ describe('file', function () {
             }, done);
         });
 
-        it('does not cache etags', function (done) {
+        it('does not cache etags', (done) => {
 
-            var server = provisionServer({ routes: { files: { relativeTo: __dirname } } }, 0);
+            const server = provisionServer({ routes: { files: { relativeTo: __dirname } } }, 0);
             server.route({ method: 'GET', path: '/note', handler: { file: './file/note.txt' } });
 
-            server.inject('/note', function (res) {
+            server.inject('/note', (res) => {
 
                 expect(res.statusCode).to.equal(200);
                 expect(res.result).to.equal('Test');
                 expect(res.headers.etag).to.not.exist();
 
-                server.inject('/note', function (res2) {
+                server.inject('/note', (res2) => {
 
                     expect(res2.statusCode).to.equal(200);
                     expect(res2.result).to.equal('Test');
@@ -422,18 +424,18 @@ describe('file', function () {
             });
         });
 
-        it('does not return etag when etagMethod is false', function (done) {
+        it('does not return etag when etagMethod is false', (done) => {
 
-            var server = provisionServer({ routes: { files: { relativeTo: __dirname } } }, 0);
+            const server = provisionServer({ routes: { files: { relativeTo: __dirname } } }, 0);
             server.route({ method: 'GET', path: '/note', handler: { file: { path: './file/note.txt', etagMethod: false } } });
 
-            server.inject('/note', function (res) {
+            server.inject('/note', (res) => {
 
                 expect(res.statusCode).to.equal(200);
                 expect(res.result).to.equal('Test');
                 expect(res.headers.etag).to.not.exist();
 
-                server.inject('/note', function (res2) {
+                server.inject('/note', (res2) => {
 
                     expect(res2.statusCode).to.equal(200);
                     expect(res2.result).to.equal('Test');
@@ -443,66 +445,66 @@ describe('file', function () {
             });
         });
 
-        it('invalidates etags when file changes (simple)', function (done) {
+        it('invalidates etags when file changes (simple)', (done) => {
 
-            var server = provisionServer({ routes: { files: { relativeTo: __dirname } } });
+            const server = provisionServer({ routes: { files: { relativeTo: __dirname } } });
 
             server.route({ method: 'GET', path: '/note', handler: { file: { path: './file/note.txt', etagMethod: 'simple' } } });
 
             // No etag, never requested
 
-            server.inject('/note', function (res1) {
+            server.inject('/note', (res1) => {
 
                 expect(res1.statusCode).to.equal(200);
                 expect(res1.result).to.equal('Test');
                 expect(res1.headers.etag).to.exist();
 
-                var etag1 = res1.headers.etag;
+                const etag1 = res1.headers.etag;
 
                 expect(etag1.slice(0, 1)).to.equal('"');
                 expect(etag1.slice(-1)).to.equal('"');
 
                 // etag
 
-                server.inject({ url: '/note', headers: { 'if-none-match': etag1 } }, function (res2) {
+                server.inject({ url: '/note', headers: { 'if-none-match': etag1 } }, (res2) => {
 
                     expect(res2.statusCode).to.equal(304);
                     expect(res2.headers).to.not.include('content-length');
                     expect(res2.headers).to.include('etag');
                     expect(res2.headers).to.include('last-modified');
 
-                    var fd1 = Fs.openSync(Path.join(__dirname, 'file', 'note.txt'), 'w');
+                    const fd1 = Fs.openSync(Path.join(__dirname, 'file', 'note.txt'), 'w');
                     Fs.writeSync(fd1, new Buffer('Test'), 0, 4);
                     Fs.closeSync(fd1);
 
                     // etag after file modified, content unchanged
 
-                    server.inject({ url: '/note', headers: { 'if-none-match': etag1 } }, function (res3) {
+                    server.inject({ url: '/note', headers: { 'if-none-match': etag1 } }, (res3) => {
 
                         expect(res3.statusCode).to.equal(200);
                         expect(res3.result).to.equal('Test');
                         expect(res3.headers.etag).to.exist();
 
-                        var etag2 = res3.headers.etag;
+                        const etag2 = res3.headers.etag;
                         expect(etag1).to.not.equal(etag2);
 
-                        var fd2 = Fs.openSync(Path.join(__dirname, 'file', 'note.txt'), 'w');
+                        const fd2 = Fs.openSync(Path.join(__dirname, 'file', 'note.txt'), 'w');
                         Fs.writeSync(fd2, new Buffer('Test1'), 0, 5);
                         Fs.closeSync(fd2);
 
                         // etag after file modified, content changed
 
-                        server.inject({ url: '/note', headers: { 'if-none-match': etag2 } }, function (res4) {
+                        server.inject({ url: '/note', headers: { 'if-none-match': etag2 } }, (res4) => {
 
                             expect(res4.statusCode).to.equal(200);
                             expect(res4.result).to.equal('Test1');
                             expect(res4.headers.etag).to.exist();
 
-                            var etag3 = res4.headers.etag;
+                            const etag3 = res4.headers.etag;
                             expect(etag1).to.not.equal(etag3);
                             expect(etag2).to.not.equal(etag3);
 
-                            var fd3 = Fs.openSync(Path.join(__dirname, 'file', 'note.txt'), 'w');
+                            const fd3 = Fs.openSync(Path.join(__dirname, 'file', 'note.txt'), 'w');
                             Fs.writeSync(fd3, new Buffer('Test'), 0, 4);
                             Fs.closeSync(fd3);
 
@@ -513,28 +515,28 @@ describe('file', function () {
             });
         });
 
-        it('invalidates etags when file changes (hash)', function (done) {
+        it('invalidates etags when file changes (hash)', (done) => {
 
-            var server = provisionServer({ routes: { files: { relativeTo: __dirname } } });
+            const server = provisionServer({ routes: { files: { relativeTo: __dirname } } });
 
             server.route({ method: 'GET', path: '/note', handler: { file: './file/note.txt' } });
 
             // etag, never requested
 
-            server.inject('/note', function (res1) {
+            server.inject('/note', (res1) => {
 
                 expect(res1.statusCode).to.equal(200);
                 expect(res1.result).to.equal('Test');
                 expect(res1.headers.etag).to.exist();
 
-                var etag1 = res1.headers.etag;
+                const etag1 = res1.headers.etag;
 
                 expect(etag1.slice(0, 1)).to.equal('"');
                 expect(etag1.slice(-1)).to.equal('"');
 
                 // etag
 
-                server.inject({ url: '/note', headers: { 'if-none-match': etag1 } }, function (res2) {
+                server.inject({ url: '/note', headers: { 'if-none-match': etag1 } }, (res2) => {
 
                     expect(res2.statusCode).to.equal(304);
                     expect(res2.headers).to.not.include('content-length');
@@ -542,49 +544,49 @@ describe('file', function () {
                     expect(res2.headers).to.include('last-modified');
 
                     Fs.unlinkSync(Path.join(__dirname, 'file', 'note.txt'));
-                    var fd1 = Fs.openSync(Path.join(__dirname, 'file', 'note.txt'), 'w');
+                    const fd1 = Fs.openSync(Path.join(__dirname, 'file', 'note.txt'), 'w');
                     Fs.writeSync(fd1, new Buffer('Test'), 0, 4);
                     Fs.closeSync(fd1);
 
                     // etag after file modified, content unchanged
 
-                    server.inject('/note', function (res3) {
+                    server.inject('/note', (res3) => {
 
                         expect(res3.statusCode).to.equal(200);
                         expect(res3.result).to.equal('Test');
                         expect(res3.headers.etag).to.exist();
 
-                        var etag2 = res3.headers.etag;
+                        const etag2 = res3.headers.etag;
                         expect(etag1).to.equal(etag2);
 
-                        var fd2 = Fs.openSync(Path.join(__dirname, 'file', 'note.txt'), 'w');
+                        const fd2 = Fs.openSync(Path.join(__dirname, 'file', 'note.txt'), 'w');
                         Fs.writeSync(fd2, new Buffer('Test1'), 0, 5);
                         Fs.closeSync(fd2);
 
                         // etag after file modified, content changed
 
-                        server.inject({ url: '/note', headers: { 'if-none-match': etag2 } }, function (res4) {
+                        server.inject({ url: '/note', headers: { 'if-none-match': etag2 } }, (res4) => {
 
                             expect(res4.statusCode).to.equal(200);
                             expect(res4.result).to.equal('Test1');
                             expect(res4.headers.etag).to.exist();
 
-                            var etag3 = res4.headers.etag;
+                            const etag3 = res4.headers.etag;
                             expect(etag1).to.not.equal(etag3);
 
-                            var fd3 = Fs.openSync(Path.join(__dirname, 'file', 'note.txt'), 'w');
+                            const fd3 = Fs.openSync(Path.join(__dirname, 'file', 'note.txt'), 'w');
                             Fs.writeSync(fd3, new Buffer('Test'), 0, 4);
                             Fs.closeSync(fd3);
 
                             // etag, content restored
 
-                            server.inject('/note', function (res5) {
+                            server.inject('/note', (res5) => {
 
                                 expect(res5.statusCode).to.equal(200);
                                 expect(res5.result).to.equal('Test');
                                 expect(res5.headers.etag).to.exist();
 
-                                var etag4 = res5.headers.etag;
+                                const etag4 = res5.headers.etag;
                                 expect(etag1).to.equal(etag4);
 
                                 done();
@@ -595,15 +597,15 @@ describe('file', function () {
             });
         });
 
-        it('returns a 304 when the request has if-modified-since and the response has not been modified since (larger)', function (done) {
+        it('returns a 304 when the request has if-modified-since and the response has not been modified since (larger)', (done) => {
 
-            var server = provisionServer();
+            const server = provisionServer();
             server.route({ method: 'GET', path: '/file', handler: { file: Path.join(__dirname, '..', 'package.json') } });
 
-            server.inject('/file', function (res1) {
+            server.inject('/file', (res1) => {
 
-                var last = new Date(Date.parse(res1.headers['last-modified']) + 1000);
-                server.inject({ url: '/file', headers: { 'if-modified-since': last.toUTCString() } }, function (res2) {
+                const last = new Date(Date.parse(res1.headers['last-modified']) + 1000);
+                server.inject({ url: '/file', headers: { 'if-modified-since': last.toUTCString() } }, (res2) => {
 
                     expect(res2.statusCode).to.equal(304);
                     expect(res2.headers).to.not.include('content-length');
@@ -614,14 +616,14 @@ describe('file', function () {
             });
         });
 
-        it('returns a 304 when the request has if-modified-since and the response has not been modified since (equal)', function (done) {
+        it('returns a 304 when the request has if-modified-since and the response has not been modified since (equal)', (done) => {
 
-            var server = provisionServer();
+            const server = provisionServer();
             server.route({ method: 'GET', path: '/file', handler: { file: Path.join(__dirname, '..', 'package.json') } });
 
-            server.inject('/file', function (res1) {
+            server.inject('/file', (res1) => {
 
-                server.inject({ url: '/file', headers: { 'if-modified-since': res1.headers['last-modified'] } }, function (res2) {
+                server.inject({ url: '/file', headers: { 'if-modified-since': res1.headers['last-modified'] } }, (res2) => {
 
                     expect(res2.statusCode).to.equal(304);
                     expect(res2.headers).to.not.include('content-length');
@@ -632,13 +634,13 @@ describe('file', function () {
             });
         });
 
-        it('computes etag header for 304 response', function (done) {
+        it('computes etag header for 304 response', (done) => {
 
-            var server = provisionServer();
+            const server = provisionServer();
             server.route({ method: 'GET', path: '/file', handler: { file: Path.join(__dirname, '..', 'package.json') } });
 
-            var future = new Date(Date.now() + 1000);
-            server.inject({ url: '/file', headers: { 'if-modified-since': future } }, function (res) {
+            const future = new Date(Date.now() + 1000);
+            server.inject({ url: '/file', headers: { 'if-modified-since': future } }, (res) => {
 
                 expect(res.statusCode).to.equal(304);
                 expect(res.headers).to.include('etag');
@@ -647,12 +649,12 @@ describe('file', function () {
             });
         });
 
-        it('computes etag header for head response', function (done) {
+        it('computes etag header for head response', (done) => {
 
-            var server = provisionServer();
+            const server = provisionServer();
             server.route({ method: 'GET', path: '/file', handler: { file: Path.join(__dirname, '..', 'package.json') } });
 
-            server.inject({ method: 'HEAD', url: '/file' }, function (res) {
+            server.inject({ method: 'HEAD', url: '/file' }, (res) => {
 
                 expect(res.statusCode).to.equal(200);
                 expect(res.headers).to.include('etag');
@@ -661,18 +663,18 @@ describe('file', function () {
             });
         });
 
-        it('changes etag when content encoding is used', function (done) {
+        it('changes etag when content encoding is used', (done) => {
 
-            var server = provisionServer();
+            const server = provisionServer();
             server.route({ method: 'GET', path: '/file', handler: { file: Path.join(__dirname, '..', 'package.json') } });
 
-            server.inject('/file', function (res1) {
+            server.inject('/file', (res1) => {
 
                 expect(res1.statusCode).to.equal(200);
                 expect(res1.headers).to.include('etag');
                 expect(res1.headers).to.include('last-modified');
 
-                server.inject({ url: '/file', headers: { 'accept-encoding': 'gzip' } }, function (res2) {
+                server.inject({ url: '/file', headers: { 'accept-encoding': 'gzip' } }, (res2) => {
 
                     expect(res2.statusCode).to.equal(200);
                     expect(res2.headers.vary).to.equal('accept-encoding');
@@ -684,19 +686,19 @@ describe('file', function () {
             });
         });
 
-        it('return a 500 on hashing errors', function (done) {
+        it('return a 500 on hashing errors', (done) => {
 
-            var server = provisionServer();
+            const server = provisionServer();
             server.route({ method: 'GET', path: '/file', handler: { file: Path.join(__dirname, '..', 'package.json') } });
 
             // Prepare complicated mocking setup to fake an io error
 
-            var orig = Fs.createReadStream;
+            const orig = Fs.createReadStream;
             Fs.createReadStream = function (path, options) {
 
                 Fs.createReadStream = orig;
 
-                process.nextTick(function () {
+                process.nextTick(() => {
 
                     Fs.closeSync(options.fd);
                 });
@@ -704,26 +706,26 @@ describe('file', function () {
                 return Fs.createReadStream(path, options);
             };
 
-            server.inject('/file', function (res) {
+            server.inject('/file', (res) => {
 
                 expect(res.statusCode).to.equal(500);
                 done();
             });
         });
 
-        it('handles multiple simultaneous request hashing errors', function (done) {
+        it('handles multiple simultaneous request hashing errors', (done) => {
 
-            var server = provisionServer();
+            const server = provisionServer();
             server.route({ method: 'GET', path: '/file', handler: { file: Path.join(__dirname, '..', 'package.json') } });
 
             // Prepare complicated mocking setup to fake an io error
 
-            var orig = Fs.createReadStream;
+            const orig = Fs.createReadStream;
             Fs.createReadStream = function (path, options) {
 
                 Fs.createReadStream = orig;
 
-                process.nextTick(function () {
+                process.nextTick(() => {
 
                     Fs.closeSync(options.fd);
                 });
@@ -731,11 +733,11 @@ describe('file', function () {
                 return Fs.createReadStream(path, options);
             };
 
-            Items.parallel(['/file', '/file'], function (req, next) {
+            Items.parallel(['/file', '/file'], (req, next) => {
 
-                setImmediate(function () {
+                setImmediate(() => {
 
-                    server.inject(req, function (res) {
+                    server.inject(req, (res) => {
 
                         expect(res.statusCode).to.equal(500);
                         next();
@@ -744,12 +746,12 @@ describe('file', function () {
             }, done);
         });
 
-        it('returns valid http date responses in last-modified header', function (done) {
+        it('returns valid http date responses in last-modified header', (done) => {
 
-            var server = provisionServer();
+            const server = provisionServer();
             server.route({ method: 'GET', path: '/file', handler: { file: Path.join(__dirname, '..', 'package.json') } });
 
-            server.inject('/file', function (res) {
+            server.inject('/file', (res) => {
 
                 expect(res.statusCode).to.equal(200);
                 expect(res.headers['last-modified']).to.equal(Fs.statSync(Path.join(__dirname, '..', 'package.json')).mtime.toUTCString());
@@ -757,59 +759,60 @@ describe('file', function () {
             });
         });
 
-        it('returns 200 if if-modified-since is invalid', function (done) {
+        it('returns 200 if if-modified-since is invalid', (done) => {
 
-            var server = provisionServer();
+            const server = provisionServer();
             server.route({ method: 'GET', path: '/file', handler: { file: Path.join(__dirname, '..', 'package.json') } });
 
-            server.inject({ url: '/file', headers: { 'if-modified-since': 'some crap' } }, function (res) {
+            server.inject({ url: '/file', headers: { 'if-modified-since': 'some crap' } }, (res) => {
 
                 expect(res.statusCode).to.equal(200);
                 done();
             });
         });
 
-        it('returns 200 if last-modified is invalid', function (done) {
+        it('returns 200 if last-modified is invalid', (done) => {
 
-            var server = provisionServer();
+            const server = provisionServer();
             server.route({
                 method: 'GET',
                 path: '/',
-                handler: function (request, reply) {
+                handler: (request, reply) => {
 
                     reply('ok').header('last-modified', 'some crap');
                 }
             });
 
-            server.inject({ url: '/', headers: { 'if-modified-since': 'Fri, 28 Mar 2014 22:52:39 GMT' } }, function (res2) {
+            server.inject({ url: '/', headers: { 'if-modified-since': 'Fri, 28 Mar 2014 22:52:39 GMT' } }, (res2) => {
 
                 expect(res2.statusCode).to.equal(200);
                 done();
             });
         });
 
-        it('closes file handlers when not reading file stream', { skip: process.platform === 'win32' }, function (done) {
+        it('closes file handlers when not reading file stream', { skip: process.platform === 'win32' }, (done) => {
 
-            var server = provisionServer();
+            const server = provisionServer();
             server.route({ method: 'GET', path: '/file', handler: { file: Path.join(__dirname, '..', 'package.json') } });
 
-            server.inject('/file', function (res1) {
+            server.inject('/file', (res1) => {
 
-                server.inject({ url: '/file', headers: { 'if-modified-since': res1.headers.date } }, function (res2) {
+                server.inject({ url: '/file', headers: { 'if-modified-since': res1.headers.date } }, (res2) => {
 
                     expect(res2.statusCode).to.equal(304);
-                    var cmd = ChildProcess.spawn('lsof', ['-p', process.pid]);
-                    var lsof = '';
-                    cmd.stdout.on('data', function (buffer) {
+                    const cmd = ChildProcess.spawn('lsof', ['-p', process.pid]);
+                    let lsof = '';
+                    cmd.stdout.on('data', (buffer) => {
 
                         lsof += buffer.toString();
                     });
 
-                    cmd.stdout.on('end', function () {
+                    cmd.stdout.on('end', () => {
 
-                        var count = 0;
-                        var lines = lsof.split('\n');
-                        for (var i = 0, il = lines.length; i < il; ++i) {
+                        let count = 0;
+                        const lines = lsof.split('\n');
+                        const il = lines.length;
+                        for (let i = 0; i < il; ++i) {
                             count += !!lines[i].match(/package.json/);
                         }
 
@@ -822,35 +825,36 @@ describe('file', function () {
             });
         });
 
-        it('closes file handlers when not using a manually open file stream', { skip: process.platform === 'win32' }, function (done) {
+        it('closes file handlers when not using a manually open file stream', { skip: process.platform === 'win32' }, (done) => {
 
-            var server = provisionServer();
+            const server = provisionServer();
             server.route({
                 method: 'GET',
                 path: '/file',
-                handler: function (request, reply) {
+                handler: (request, reply) => {
 
                     reply(Fs.createReadStream(Path.join(__dirname, '..', 'package.json'))).header('etag', 'abc');
                 }
             });
 
-            server.inject('/file', function (res1) {
+            server.inject('/file', (res1) => {
 
-                server.inject({ url: '/file', headers: { 'if-none-match': res1.headers.etag } }, function (res2) {
+                server.inject({ url: '/file', headers: { 'if-none-match': res1.headers.etag } }, (res2) => {
 
                     expect(res2.statusCode).to.equal(304);
-                    var cmd = ChildProcess.spawn('lsof', ['-p', process.pid]);
-                    var lsof = '';
-                    cmd.stdout.on('data', function (buffer) {
+                    const cmd = ChildProcess.spawn('lsof', ['-p', process.pid]);
+                    let lsof = '';
+                    cmd.stdout.on('data', (buffer) => {
 
                         lsof += buffer.toString();
                     });
 
-                    cmd.stdout.on('end', function () {
+                    cmd.stdout.on('end', () => {
 
-                        var count = 0;
-                        var lines = lsof.split('\n');
-                        for (var i = 0, il = lines.length; i < il; ++i) {
+                        let count = 0;
+                        const lines = lsof.split('\n');
+                        const il = lines.length;
+                        for (let i = 0; i < il; ++i) {
                             count += !!lines[i].match(/package.json/);
                         }
 
@@ -863,17 +867,17 @@ describe('file', function () {
             });
         });
 
-        it('returns a gzipped file in the response when the request accepts gzip', function (done) {
+        it('returns a gzipped file in the response when the request accepts gzip', (done) => {
 
-            var server = provisionServer({ routes: { files: { relativeTo: __dirname } } });
-            var handler = function (request, reply) {
+            const server = provisionServer({ routes: { files: { relativeTo: __dirname } } });
+            const handler = (request, reply) => {
 
                 reply.file(Path.join(__dirname, '..', 'package.json'));
             };
 
             server.route({ method: 'GET', path: '/file', handler: handler });
 
-            server.inject({ url: '/file', headers: { 'accept-encoding': 'gzip' } }, function (res) {
+            server.inject({ url: '/file', headers: { 'accept-encoding': 'gzip' } }, (res) => {
 
                 expect(res.statusCode).to.equal(200);
                 expect(res.headers['content-type']).to.equal('application/json; charset=utf-8');
@@ -884,17 +888,17 @@ describe('file', function () {
             });
         });
 
-        it('returns a plain file when not compressible', function (done) {
+        it('returns a plain file when not compressible', (done) => {
 
-            var server = provisionServer({ routes: { files: { relativeTo: __dirname } } });
-            var handler = function (request, reply) {
+            const server = provisionServer({ routes: { files: { relativeTo: __dirname } } });
+            const handler = (request, reply) => {
 
                 reply.file(Path.join(__dirname, 'file', 'image.png'));
             };
 
             server.route({ method: 'GET', path: '/file', handler: handler });
 
-            server.inject({ url: '/file', headers: { 'accept-encoding': 'gzip' } }, function (res) {
+            server.inject({ url: '/file', headers: { 'accept-encoding': 'gzip' } }, (res) => {
 
                 expect(res.statusCode).to.equal(200);
                 expect(res.headers['content-type']).to.equal('image/png');
@@ -905,17 +909,17 @@ describe('file', function () {
             });
         });
 
-        it('returns a deflated file in the response when the request accepts deflate', function (done) {
+        it('returns a deflated file in the response when the request accepts deflate', (done) => {
 
-            var server = provisionServer({ routes: { files: { relativeTo: __dirname } } });
-            var handler = function (request, reply) {
+            const server = provisionServer({ routes: { files: { relativeTo: __dirname } } });
+            const handler = (request, reply) => {
 
                 reply.file(Path.join(__dirname, '..', 'package.json'));
             };
 
             server.route({ method: 'GET', path: '/file', handler: handler });
 
-            server.inject({ url: '/file', headers: { 'accept-encoding': 'deflate' } }, function (res) {
+            server.inject({ url: '/file', headers: { 'accept-encoding': 'deflate' } }, (res) => {
 
                 expect(res.statusCode).to.equal(200);
                 expect(res.headers['content-type']).to.equal('application/json; charset=utf-8');
@@ -926,14 +930,14 @@ describe('file', function () {
             });
         });
 
-        it('returns a gzipped file using precompressed file', function (done) {
+        it('returns a gzipped file using precompressed file', (done) => {
 
-            var content = Fs.readFileSync('./test/file/image.png.gz');
+            const content = Fs.readFileSync('./test/file/image.png.gz');
 
-            var server = provisionServer();
+            const server = provisionServer();
             server.route({ method: 'GET', path: '/file', handler: { file: { path: './test/file/image.png', lookupCompressed: true } } });
 
-            server.inject({ url: '/file', headers: { 'accept-encoding': 'gzip' } }, function (res) {
+            server.inject({ url: '/file', headers: { 'accept-encoding': 'gzip' } }, (res) => {
 
                 expect(res.statusCode).to.equal(200);
                 expect(res.headers['content-type']).to.equal('image/png');
@@ -944,12 +948,12 @@ describe('file', function () {
             });
         });
 
-        it('returns a gzipped file when precompressed file not found', function (done) {
+        it('returns a gzipped file when precompressed file not found', (done) => {
 
-            var server = provisionServer();
+            const server = provisionServer();
             server.route({ method: 'GET', path: '/file', handler: { file: { path: './test/file/note.txt', lookupCompressed: true } } });
 
-            server.inject({ url: '/file', headers: { 'accept-encoding': 'gzip' } }, function (res) {
+            server.inject({ url: '/file', headers: { 'accept-encoding': 'gzip' } }, (res) => {
 
                 expect(res.statusCode).to.equal(200);
                 expect(res.headers['content-encoding']).to.equal('gzip');
@@ -959,14 +963,14 @@ describe('file', function () {
             });
         });
 
-        it('returns a 304 when using precompressed file and if-modified-since set', function (done) {
+        it('returns a 304 when using precompressed file and if-modified-since set', (done) => {
 
-            var server = provisionServer();
+            const server = provisionServer();
             server.route({ method: 'GET', path: '/file', handler: { file: { path: './test/file/image.png', lookupCompressed: true } } });
 
-            server.inject('/file', function (res1) {
+            server.inject('/file', (res1) => {
 
-                server.inject({ url: '/file', headers: { 'if-modified-since': res1.headers.date, 'accept-encoding': 'gzip' } }, function (res2) {
+                server.inject({ url: '/file', headers: { 'if-modified-since': res1.headers.date, 'accept-encoding': 'gzip' } }, (res2) => {
 
                     expect(res2.statusCode).to.equal(304);
                     done();
@@ -974,12 +978,12 @@ describe('file', function () {
             });
         });
 
-        it('ignores precompressed file when content-encoding not requested', function (done) {
+        it('ignores precompressed file when content-encoding not requested', (done) => {
 
-            var server = provisionServer();
+            const server = provisionServer();
             server.route({ method: 'GET', path: '/file', handler: { file: { path: './test/file/image.png', lookupCompressed: true } } });
 
-            server.inject('/file', function (res) {
+            server.inject('/file', (res) => {
 
                 expect(res.statusCode).to.equal(200);
                 expect(res.headers['content-type']).to.equal('image/png');
@@ -989,12 +993,12 @@ describe('file', function () {
             });
         });
 
-        it('ignores precompressed file when connection compression is disabled', function (done) {
+        it('ignores precompressed file when connection compression is disabled', (done) => {
 
-            var server = provisionServer({ compression: false });
+            const server = provisionServer({ compression: false });
             server.route({ method: 'GET', path: '/file', handler: { file: { path: './test/file/image.png', lookupCompressed: true } } });
 
-            server.inject({ url: '/file', headers: { 'accept-encoding': 'gzip' } }, function (res) {
+            server.inject({ url: '/file', headers: { 'accept-encoding': 'gzip' } }, (res) => {
 
                 expect(res.statusCode).to.equal(200);
                 expect(res.headers['content-type']).to.equal('image/png');
@@ -1004,55 +1008,56 @@ describe('file', function () {
             });
         });
 
-        it('does not throw an error when adding a route with a parameter and function path', function (done) {
+        it('does not throw an error when adding a route with a parameter and function path', (done) => {
 
-            var fn = function () {
+            const fn = () => {
 
-                var server = provisionServer();
-                server.route({ method: 'GET', path: '/fileparam/{path}', handler: { file: function () { } } });
-                server.route({ method: 'GET', path: '/filepathparam/{path}', handler: { file: { path: function () { } } } });
+                const server = provisionServer();
+                server.route({ method: 'GET', path: '/fileparam/{path}', handler: { file: () => { } } });
+                server.route({ method: 'GET', path: '/filepathparam/{path}', handler: { file: { path: () => { } } } });
             };
 
             expect(fn).to.not.throw();
             done();
         });
 
-        it('responds correctly when file is removed while processing', function (done) {
+        it('responds correctly when file is removed while processing', (done) => {
 
-            var filename = Hoek.uniqueFilename(Os.tmpDir()) + '.package.json';
+            const filename = Hoek.uniqueFilename(Os.tmpDir()) + '.package.json';
             Fs.writeFileSync(filename, 'data');
 
-            var server = provisionServer();
+            const server = provisionServer();
             server.route({ method: 'GET', path: '/', handler: { file: filename } });
-            server.ext('onPreResponse', function (request, reply) {
+            server.ext('onPreResponse', (request, reply) => {
 
                 Fs.unlinkSync(filename);
                 return reply.continue();
             });
 
-            server.inject('/', function (res) {
+            server.inject('/', (res) => {
 
                 expect(res.statusCode).to.equal(200);
                 done();
             });
         });
 
-        it('responds correctly when file is changed while processing', function (done) {
+        it('responds correctly when file is changed while processing', (done) => {
 
-            var filename = Hoek.uniqueFilename(Os.tmpDir()) + '.package.json';
+            const filename = Hoek.uniqueFilename(Os.tmpDir()) + '.package.json';
             Fs.writeFileSync(filename, 'data');
 
-            var server = provisionServer();
+            const server = provisionServer();
             server.route({ method: 'GET', path: '/', handler: { file: filename } });
-            server.ext('onPreResponse', function (request, reply) {
+            server.ext('onPreResponse', (request, reply) => {
 
-                var tempfile = filename + '~';
+                const tempfile = filename + '~';
                 if (process.platform === 'win32') {
                     // workaround to replace open file without a permission error
                     Fs.renameSync(filename, tempfile);
                     Fs.writeFileSync(filename, 'database');
                     Fs.unlinkSync(tempfile);
-                } else {
+                }
+                else {
                     // atomic file replace
                     Fs.writeFileSync(tempfile, 'database');
                     Fs.renameSync(tempfile, filename);
@@ -1061,7 +1066,7 @@ describe('file', function () {
                 return reply.continue();
             });
 
-            server.inject('/', function (res) {
+            server.inject('/', (res) => {
 
                 Fs.unlinkSync(filename);
 
@@ -1072,16 +1077,16 @@ describe('file', function () {
             });
         });
 
-        it('does not marshal response on 304', function (done) {
+        it('does not marshal response on 304', (done) => {
 
-            var server = provisionServer();
+            const server = provisionServer();
             server.route({ method: 'GET', path: '/file', handler: { file: Path.join(__dirname, '..', 'package.json') } });
 
-            server.inject('/file', function (res1) {
+            server.inject('/file', (res1) => {
 
-                server.ext('onPreResponse', function (request, reply) {
+                server.ext('onPreResponse', (request, reply) => {
 
-                    request.response._marshall = function () {
+                    request.response._marshall = () => {
 
                         throw new Error('not called');
                     };
@@ -1089,7 +1094,7 @@ describe('file', function () {
                     return reply.continue();
                 });
 
-                server.inject({ url: '/file', headers: { 'if-modified-since': res1.headers.date } }, function (res2) {
+                server.inject({ url: '/file', headers: { 'if-modified-since': res1.headers.date } }, (res2) => {
 
                     expect(res2.statusCode).to.equal(304);
                     done();
@@ -1097,31 +1102,31 @@ describe('file', function () {
             });
         });
 
-        it('returns error when aborted while processing', function (done) {
+        it('returns error when aborted while processing', (done) => {
 
-            var filename = Hoek.uniqueFilename(Os.tmpDir()) + '.package.json';
+            const filename = Hoek.uniqueFilename(Os.tmpDir()) + '.package.json';
             Fs.writeFileSync(filename, 'data');
 
-            var server = provisionServer();
+            const server = provisionServer();
             server.route({ method: 'GET', path: '/', handler: { file: filename } });
-            server.ext('onPreResponse', function (request, reply) {
+            server.ext('onPreResponse', (request, reply) => {
 
                 reply(Boom.internal('crapping out'));
             });
 
-            server.inject('/', function (res) {
+            server.inject('/', (res) => {
 
                 expect(res.statusCode).to.equal(500);
                 done();
             });
         });
 
-        it('returns error when stat fails unexpectedly', function (done) {
+        it('returns error when stat fails unexpectedly', (done) => {
 
-            var filename = Hoek.uniqueFilename(Os.tmpDir()) + '.package.json';
+            const filename = Hoek.uniqueFilename(Os.tmpDir()) + '.package.json';
             Fs.writeFileSync(filename, 'data');
 
-            var orig = Fs.fstat;
+            const orig = Fs.fstat;
             Fs.fstat = function (fd, callback) {        // can return EIO error
 
                 Fs.fstat = orig;
@@ -1129,69 +1134,71 @@ describe('file', function () {
             };
 
 
-            var server = provisionServer();
+            const server = provisionServer();
             server.route({ method: 'GET', path: '/', handler: { file: filename } });
 
-            server.inject('/', function (res) {
+            server.inject('/', (res) => {
 
                 expect(res.statusCode).to.equal(500);
                 done();
             });
         });
 
-        it('returns error when open fails unexpectedly', function (done) {
+        it('returns error when open fails unexpectedly', (done) => {
 
-            var filename = Hoek.uniqueFilename(Os.tmpDir()) + '.package.json';
+            const filename = Hoek.uniqueFilename(Os.tmpDir()) + '.package.json';
             Fs.writeFileSync(filename, 'data');
 
-            var orig = Fs.open;
+            const orig = Fs.open;
             Fs.open = function () {        // can return EMFILE error
 
                 Fs.open = orig;
-                var callback = arguments[arguments.length - 1];
+                const callback = arguments[arguments.length - 1];
                 callback(new Error('failed'));
             };
 
-            var server = provisionServer();
+            const server = provisionServer();
             server.route({ method: 'GET', path: '/', handler: { file: filename } });
 
-            server.inject('/', function (res) {
+            server.inject('/', (res) => {
 
                 expect(res.statusCode).to.equal(500);
                 done();
             });
         });
 
-        it('returns a 403 when missing file read permission', function (done) {
+        it('returns a 403 when missing file read permission', (done) => {
 
-            var filename = Hoek.uniqueFilename(Os.tmpDir()) + '.package.json';
+            const filename = Hoek.uniqueFilename(Os.tmpDir()) + '.package.json';
             Fs.writeFileSync(filename, 'data');
 
-            var retainedFd;
+            let retainedFd;
             if (process.platform === 'win32') {
                 // make a permissionless file by unlinking an open file
                 retainedFd = Fs.openSync(filename, 'r');
                 Fs.unlinkSync(filename);
-            } else {
+            }
+            else {
                 Fs.chmodSync(filename, 0);
             }
 
-            var server = provisionServer();
+            const server = provisionServer();
             server.route({ method: 'GET', path: '/', handler: { file: filename } });
 
-            server.inject('/', function (res1) {
+            server.inject('/', (res1) => {
 
-                var orig = Fs.open;
+                const orig = Fs.open;
                 Fs.open = function (path, mode, callback) {        // fake alternate permission error
 
                     Fs.open = orig;
-                    return Fs.open(path, mode, function (err, fd) {
+                    return Fs.open(path, mode, (err, fd) => {
 
                         if (err) {
                             if (err.code === 'EACCES') {
                                 err.code = 'EPERM';
                                 err.errno = -1;
-                            } else if (err.code === 'EPERM') {
+                            }
+                            else if (err.code === 'EPERM') {
                                 err.code = 'EACCES';
                                 err.errno = -13;
                             }
@@ -1201,12 +1208,13 @@ describe('file', function () {
                     });
                 };
 
-                server.inject('/', function (res2) {
+                server.inject('/', (res2) => {
 
                     // cleanup
                     if (typeof retainedFd === 'number') {
                         Fs.closeSync(retainedFd);
-                    } else {
+                    }
+                    else {
                         Fs.unlinkSync(filename);
                     }
 
@@ -1217,14 +1225,14 @@ describe('file', function () {
             });
         });
 
-        describe('response range', function () {
+        describe('response range', () => {
 
-            it('returns a subset of a file (start)', function (done) {
+            it('returns a subset of a file (start)', (done) => {
 
-                var server = provisionServer();
+                const server = provisionServer();
                 server.route({ method: 'GET', path: '/file', handler: { file: { path: Path.join(__dirname, 'file/image.png') } } });
 
-                server.inject({ url: '/file', headers: { 'range': 'bytes=0-4' } }, function (res) {
+                server.inject({ url: '/file', headers: { 'range': 'bytes=0-4' } }, (res) => {
 
                     expect(res.statusCode).to.equal(206);
                     expect(res.headers['content-length']).to.equal(5);
@@ -1235,12 +1243,12 @@ describe('file', function () {
                 });
             });
 
-            it('returns a subset of a file (middle)', function (done) {
+            it('returns a subset of a file (middle)', (done) => {
 
-                var server = provisionServer();
+                const server = provisionServer();
                 server.route({ method: 'GET', path: '/file', handler: { file: { path: Path.join(__dirname, 'file/image.png') } } });
 
-                server.inject({ url: '/file', headers: { 'range': 'bytes=1-5' } }, function (res) {
+                server.inject({ url: '/file', headers: { 'range': 'bytes=1-5' } }, (res) => {
 
                     expect(res.statusCode).to.equal(206);
                     expect(res.headers['content-length']).to.equal(5);
@@ -1251,12 +1259,12 @@ describe('file', function () {
                 });
             });
 
-            it('returns a subset of a file (-to)', function (done) {
+            it('returns a subset of a file (-to)', (done) => {
 
-                var server = provisionServer();
+                const server = provisionServer();
                 server.route({ method: 'GET', path: '/file', handler: { file: { path: Path.join(__dirname, 'file/image.png') } } });
 
-                server.inject({ url: '/file', headers: { 'range': 'bytes=-5' } }, function (res) {
+                server.inject({ url: '/file', headers: { 'range': 'bytes=-5' } }, (res) => {
 
                     expect(res.statusCode).to.equal(206);
                     expect(res.headers['content-length']).to.equal(5);
@@ -1267,12 +1275,12 @@ describe('file', function () {
                 });
             });
 
-            it('returns a subset of a file (from-)', function (done) {
+            it('returns a subset of a file (from-)', (done) => {
 
-                var server = provisionServer();
+                const server = provisionServer();
                 server.route({ method: 'GET', path: '/file', handler: { file: { path: Path.join(__dirname, 'file/image.png') } } });
 
-                server.inject({ url: '/file', headers: { 'range': 'bytes=42005-' } }, function (res) {
+                server.inject({ url: '/file', headers: { 'range': 'bytes=42005-' } }, (res) => {
 
                     expect(res.statusCode).to.equal(206);
                     expect(res.headers['content-length']).to.equal(5);
@@ -1283,12 +1291,12 @@ describe('file', function () {
                 });
             });
 
-            it('returns a subset of a file (beyond end)', function (done) {
+            it('returns a subset of a file (beyond end)', (done) => {
 
-                var server = provisionServer();
+                const server = provisionServer();
                 server.route({ method: 'GET', path: '/file', handler: { file: { path: Path.join(__dirname, 'file/image.png') } } });
 
-                server.inject({ url: '/file', headers: { 'range': 'bytes=42005-42011' } }, function (res) {
+                server.inject({ url: '/file', headers: { 'range': 'bytes=42005-42011' } }, (res) => {
 
                     expect(res.statusCode).to.equal(206);
                     expect(res.headers['content-length']).to.equal(5);
@@ -1299,14 +1307,14 @@ describe('file', function () {
                 });
             });
 
-            it('returns a subset of a file (if-range)', function (done) {
+            it('returns a subset of a file (if-range)', (done) => {
 
-                var server = provisionServer();
+                const server = provisionServer();
                 server.route({ method: 'GET', path: '/file', handler: { file: { path: Path.join(__dirname, 'file/image.png') } } });
 
-                server.inject('/file', function (res1) {
+                server.inject('/file', (res1) => {
 
-                    server.inject({ url: '/file', headers: { 'range': 'bytes=42005-42011', 'if-range': res1.headers.etag } }, function (res2) {
+                    server.inject({ url: '/file', headers: { 'range': 'bytes=42005-42011', 'if-range': res1.headers.etag } }, (res2) => {
 
                         expect(res2.statusCode).to.equal(206);
                         expect(res2.headers['content-length']).to.equal(5);
@@ -1318,24 +1326,24 @@ describe('file', function () {
                 });
             });
 
-            it('returns 200 on incorrect if-range', function (done) {
+            it('returns 200 on incorrect if-range', (done) => {
 
-                var server = provisionServer();
+                const server = provisionServer();
                 server.route({ method: 'GET', path: '/file', handler: { file: { path: Path.join(__dirname, 'file/image.png') } } });
 
-                server.inject({ url: '/file', headers: { 'range': 'bytes=42005-42011', 'if-range': 'abc' } }, function (res2) {
+                server.inject({ url: '/file', headers: { 'range': 'bytes=42005-42011', 'if-range': 'abc' } }, (res2) => {
 
                     expect(res2.statusCode).to.equal(200);
                     done();
                 });
             });
 
-            it('returns 416 on invalid range (unit)', function (done) {
+            it('returns 416 on invalid range (unit)', (done) => {
 
-                var server = provisionServer();
+                const server = provisionServer();
                 server.route({ method: 'GET', path: '/file', handler: { file: { path: Path.join(__dirname, 'file/image.png') } } });
 
-                server.inject({ url: '/file', headers: { 'range': 'horses=1-5' } }, function (res) {
+                server.inject({ url: '/file', headers: { 'range': 'horses=1-5' } }, (res) => {
 
                     expect(res.statusCode).to.equal(416);
                     expect(res.headers['content-range']).to.equal('bytes */42010');
@@ -1343,12 +1351,12 @@ describe('file', function () {
                 });
             });
 
-            it('returns 416 on invalid range (inversed)', function (done) {
+            it('returns 416 on invalid range (inversed)', (done) => {
 
-                var server = provisionServer();
+                const server = provisionServer();
                 server.route({ method: 'GET', path: '/file', handler: { file: { path: Path.join(__dirname, 'file/image.png') } } });
 
-                server.inject({ url: '/file', headers: { 'range': 'bytes=5-1' } }, function (res) {
+                server.inject({ url: '/file', headers: { 'range': 'bytes=5-1' } }, (res) => {
 
                     expect(res.statusCode).to.equal(416);
                     expect(res.headers['content-range']).to.equal('bytes */42010');
@@ -1356,12 +1364,12 @@ describe('file', function () {
                 });
             });
 
-            it('returns 416 on invalid range (format)', function (done) {
+            it('returns 416 on invalid range (format)', (done) => {
 
-                var server = provisionServer();
+                const server = provisionServer();
                 server.route({ method: 'GET', path: '/file', handler: { file: { path: Path.join(__dirname, 'file/image.png') } } });
 
-                server.inject({ url: '/file', headers: { 'range': 'bytes 1-5' } }, function (res) {
+                server.inject({ url: '/file', headers: { 'range': 'bytes 1-5' } }, (res) => {
 
                     expect(res.statusCode).to.equal(416);
                     expect(res.headers['content-range']).to.equal('bytes */42010');
@@ -1369,12 +1377,12 @@ describe('file', function () {
                 });
             });
 
-            it('returns 416 on invalid range (empty range)', function (done) {
+            it('returns 416 on invalid range (empty range)', (done) => {
 
-                var server = provisionServer();
+                const server = provisionServer();
                 server.route({ method: 'GET', path: '/file', handler: { file: { path: Path.join(__dirname, 'file/image.png') } } });
 
-                server.inject({ url: '/file', headers: { 'range': 'bytes=-' } }, function (res) {
+                server.inject({ url: '/file', headers: { 'range': 'bytes=-' } }, (res) => {
 
                     expect(res.statusCode).to.equal(416);
                     expect(res.headers['content-range']).to.equal('bytes */42010');
@@ -1382,12 +1390,12 @@ describe('file', function () {
                 });
             });
 
-            it('returns 200 on multiple ranges', function (done) {
+            it('returns 200 on multiple ranges', (done) => {
 
-                var server = provisionServer();
+                const server = provisionServer();
                 server.route({ method: 'GET', path: '/file', handler: { file: { path: Path.join(__dirname, 'file/image.png') } } });
 
-                server.inject({ url: '/file', headers: { 'range': 'bytes=1-5,7-10' } }, function (res) {
+                server.inject({ url: '/file', headers: { 'range': 'bytes=1-5,7-10' } }, (res) => {
 
                     expect(res.statusCode).to.equal(200);
                     expect(res.headers['content-length']).to.equal(42010);
@@ -1395,11 +1403,11 @@ describe('file', function () {
                 });
             });
 
-            it('returns a subset of a file using precompressed file', function (done) {
+            it('returns a subset of a file using precompressed file', (done) => {
 
-                var server = provisionServer();
+                const server = provisionServer();
                 server.route({ method: 'GET', path: '/file', handler: { file: { path: Path.join(__dirname, 'file/image.png'), lookupCompressed: true } } });
-                server.inject({ url: '/file', headers: { 'range': 'bytes=10-18', 'accept-encoding': 'gzip' } }, function (res) {
+                server.inject({ url: '/file', headers: { 'range': 'bytes=10-18', 'accept-encoding': 'gzip' } }, (res) => {
 
                     expect(res.statusCode).to.equal(206);
                     expect(res.headers['content-encoding']).to.equal('gzip');
@@ -1412,21 +1420,22 @@ describe('file', function () {
             });
         });
 
-        it('has not leaked file descriptors', { skip: process.platform === 'win32' }, function (done) {
+        it('has not leaked file descriptors', { skip: process.platform === 'win32' }, (done) => {
 
             // validate that all descriptors has been closed
-            var cmd = ChildProcess.spawn('lsof', ['-p', process.pid]);
-            var lsof = '';
-            cmd.stdout.on('data', function (buffer) {
+            const cmd = ChildProcess.spawn('lsof', ['-p', process.pid]);
+            let lsof = '';
+            cmd.stdout.on('data', (buffer) => {
 
                 lsof += buffer.toString();
             });
 
-            cmd.stdout.on('end', function () {
+            cmd.stdout.on('end', () => {
 
-                var count = 0;
-                var lines = lsof.split('\n');
-                for (var i = 0, il = lines.length; i < il; ++i) {
+                let count = 0;
+                const lines = lsof.split('\n');
+                const il = lines.length;
+                for (let i = 0; i < il; ++i) {
                     count += !!lines[i].match(/package.json/);
                 }
 
