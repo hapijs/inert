@@ -39,11 +39,11 @@ The following creates a basic static file server that can be used to serve html 
 `public` directory on port 3000:
 
 ```js
-var Path = require('path');
-var Hapi = require('hapi');
-var Inert = require('inert');
+const Path = require('path');
+const Hapi = require('hapi');
+const Inert = require('inert');
 
-var server = new Hapi.Server({
+const server = new Hapi.Server({
     connections: {
         routes: {
             files: {
@@ -54,7 +54,7 @@ var server = new Hapi.Server({
 });
 server.connection({ port: 3000 });
 
-server.register(Inert, function () {});
+server.register(Inert, () => {});
 
 server.route({
     method: 'GET',
@@ -68,7 +68,7 @@ server.route({
     }
 });
 
-server.start(function (err) {
+server.start((err) => {
 
     if (err) {
         throw err;
@@ -102,7 +102,7 @@ server.route({
     path: '/file',
     handler: function (request, reply) {
 
-        var path = 'plain.txt';
+        let path = 'plain.txt';
         if (request.headers['x-magic'] === 'sekret') {
             path = 'awesome.png';
         }
@@ -113,7 +113,7 @@ server.route({
 
 server.ext('onPostHandler', function (request, reply) {
 
-    var response = request.response;
+    const response = request.response;
     if (response.isBoom &&
         response.output.statusCode === 404) {
 

@@ -302,7 +302,7 @@ describe('file', () => {
 
         it('returns a file using the file function with the built-in handler config', (done) => {
 
-            const filenameFn = function (request) {
+            const filenameFn = (request) => {
 
                 return '../lib/' + request.params.file;
             };
@@ -811,8 +811,7 @@ describe('file', () => {
 
                         let count = 0;
                         const lines = lsof.split('\n');
-                        const il = lines.length;
-                        for (let i = 0; i < il; ++i) {
+                        for (let i = 0; i < lines.length; ++i) {
                             count += !!lines[i].match(/package.json/);
                         }
 
@@ -853,8 +852,7 @@ describe('file', () => {
 
                         let count = 0;
                         const lines = lsof.split('\n');
-                        const il = lines.length;
-                        for (let i = 0; i < il; ++i) {
+                        for (let i = 0; i < lines.length; ++i) {
                             count += !!lines[i].match(/package.json/);
                         }
 
@@ -1434,8 +1432,7 @@ describe('file', () => {
 
                 let count = 0;
                 const lines = lsof.split('\n');
-                const il = lines.length;
-                for (let i = 0; i < il; ++i) {
+                for (let i = 0; i < lines.length; ++i) {
                     count += !!lines[i].match(/package.json/);
                 }
 

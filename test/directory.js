@@ -30,7 +30,7 @@ describe('directory', () => {
 
     describe('handler()', () => {
 
-        const provisionServer = function (connection, debug) {
+        const provisionServer = (connection, debug) => {
 
             const server = new Hapi.Server({ debug: debug });
             server.connection(connection || { routes: { files: { relativeTo: __dirname } }, router: { stripTrailingSlash: false } });
@@ -108,7 +108,7 @@ describe('directory', () => {
                 path: '/multiple/{path*}',
                 handler: {
                     directory: {
-                        path: function () {
+                        path: () => {
 
                             return ['./', '../'];
                         },
@@ -401,7 +401,7 @@ describe('directory', () => {
 
         it('returns the correct file when using a fn directory handler', (done) => {
 
-            const directoryFn = function (request) {
+            const directoryFn = (request) => {
 
                 return '../lib';
             };
@@ -653,7 +653,7 @@ describe('directory', () => {
 
         it('resolves path name from plugin using specified path', (done) => {
 
-            const plugin = function (server, options, next) {
+            const plugin = (server, options, next) => {
 
                 server.path(__dirname);
                 server.route({ method: 'GET', path: '/test/{path*}', config: { handler: { directory: { path: Path.join('.', 'directory'), index: false, listing: false } } } });
@@ -676,7 +676,7 @@ describe('directory', () => {
 
         it('resolves path name from plugin using relative path', (done) => {
 
-            const plugin = function (server, options, next) {
+            const plugin = (server, options, next) => {
 
                 server.route({ method: 'GET', path: '/test/{path*}', config: { handler: { directory: { path: Path.join('.', 'test', 'directory'), index: false, listing: false } } } });
                 return next();
@@ -740,7 +740,7 @@ describe('directory', () => {
 
         it('returns error when path function returns invalid response', (done) => {
 
-            const path = function () {
+            const path = () => {
 
                 return 5;
             };
