@@ -1,7 +1,7 @@
 // Load modules
 
 var Code = require('code');
-var Hapi = require('./helpers/hapi');
+var Hapi = require('hapi');
 var Hoek = require('hoek');
 var Inert = require('..');
 var Lab = require('lab');
