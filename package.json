@@ -25,9 +25,7 @@
   "devDependencies": {
     "code": "2.x.x",
     "hapi": "11.x.x",
-    "hapi-lts": "9.x.x",
-    "lab": "8.x.x",
-    "semver": "5.x.x"
+    "lab": "8.x.x"
   },
   "scripts": {
     "test": "lab -f -a code -t 100 -L",

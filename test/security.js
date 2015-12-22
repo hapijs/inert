@@ -3,7 +3,7 @@
 // Load modules
 
 const Code = require('code');
-const Hapi = require('./helpers/hapi');
+const Hapi = require('hapi');
 const Hoek = require('hoek');
 const Inert = require('..');
 const Lab = require('lab');
