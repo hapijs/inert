@@ -1395,6 +1395,83 @@ describe('file', function () {
                 });
             });
 
+            it('reads partial file content for a non-compressible file', function (done) {
+
+                var server = provisionServer();
+                server.route({ method: 'GET', path: '/file', handler: { file: { path: Path.join(__dirname, 'file/image.png'), etagMethod: false } } });
+
+                // Catch createReadStream options
+
+                var createOptions;
+                var orig = Fs.createReadStream;
+                Fs.createReadStream = function (path, options) {
+
+                    Fs.createReadStream = orig;
+                    createOptions = options;
+
+                    return Fs.createReadStream(path, options);
+                };
+
+                server.inject({ url: '/file', headers: { 'range': 'bytes=1-4', 'accept-encoding': 'gzip' } }, function (res) {
+
+                    expect(res.statusCode).to.equal(206);
+                    expect(res.headers['content-length']).to.equal(4);
+                    expect(res.headers['content-range']).to.equal('bytes 1-4/42010');
+                    expect(res.headers['accept-ranges']).to.equal('bytes');
+                    expect(res.rawPayload).to.deep.equal(new Buffer('PNG\r', 'ascii'));
+                    expect(createOptions).to.include({ start: 1, end: 4 });
+                    done();
+                });
+            });
+
+            it('returns 200 when content-length is missing', function (done) {
+
+                var server = provisionServer();
+                server.route({ method: 'GET', path: '/file', handler: { file: { path: Path.join(__dirname, 'file/image.png') } } });
+
+                server.ext('onPreResponse', function (request, reply) {
+
+                    delete request.response.headers['content-length'];
+                    return reply.continue();
+                });
+
+                server.inject({ url: '/file', headers: { 'range': 'bytes=1-5' } }, function (res) {
+
+                    expect(res.statusCode).to.equal(200);
+                    expect(res.headers['content-length']).to.not.exist();
+                    done();
+                });
+            });
+
+            it('returns 200 for dynamically compressed responses', function (done) {
+
+                var server = provisionServer();
+                server.route({ method: 'GET', path: '/file', handler: { file: { path: Path.join(__dirname, 'file/note.txt'), lookupCompressed: false } } });
+                server.inject({ url: '/file', headers: { 'range': 'bytes=1-3', 'accept-encoding': 'gzip' } }, function (res) {
+
+                    expect(res.statusCode).to.equal(200);
+                    expect(res.headers['content-encoding']).to.equal('gzip');
+                    expect(res.headers['content-length']).to.not.exist();
+                    expect(res.headers['content-range']).to.not.exist();
+                    expect(res.headers['accept-ranges']).to.equal('bytes');
+                    done();
+                });
+            });
+
+            it('returns a subset of a file when compression is disabled', function (done) {
+
+                var server = provisionServer({ compression: false });
+                server.route({ method: 'GET', path: '/file', handler: { file: { path: Path.join(__dirname, 'file/note.txt'), lookupCompressed: false } } });
+                server.inject({ url: '/file', headers: { 'range': 'bytes=1-3', 'accept-encoding': 'gzip' } }, function (res) {
+
+                    expect(res.statusCode).to.equal(206);
+                    expect(res.headers['content-encoding']).to.not.exist();
+                    expect(res.headers['content-length']).to.equal(3);
+                    expect(res.headers['content-range']).to.equal('bytes 1-3/4');
+                    done();
+                });
+            });
+
             it('returns a subset of a file using precompressed file', function (done) {
 
                 var server = provisionServer();
@@ -1407,6 +1484,42 @@ describe('file', function () {
                     expect(res.headers['content-range']).to.equal('bytes 10-18/41936');
                     expect(res.headers['accept-ranges']).to.equal('bytes');
                     expect(res.payload).to.equal('image.png');
+                    done();
+                });
+            });
+
+            it('returns a subset for dynamically compressed responses with "identity" encoding', function (done) {
+
+                var server = provisionServer();
+                server.route({ method: 'GET', path: '/file', handler: { file: { path: Path.join(__dirname, 'file/note.txt'), lookupCompressed: false } } });
+                server.inject({ url: '/file', headers: { 'range': 'bytes=1-3', 'accept-encoding': 'identity' } }, function (res) {
+
+                    expect(res.statusCode).to.equal(206);
+                    expect(res.headers['content-encoding']).to.not.exist();
+                    expect(res.headers['content-length']).to.equal(3);
+                    expect(res.headers['content-range']).to.equal('bytes 1-3/4');
+                    done();
+                });
+            });
+
+            it('returns a subset when content-type is missing', function (done) {
+
+                var server = provisionServer();
+                server.route({ method: 'GET', path: '/file', handler: { file: { path: Path.join(__dirname, 'file/note.txt') } } });
+
+                server.ext('onPreResponse', function (request, reply) {
+
+                    delete request.response.headers['content-type'];
+                    return reply.continue();
+                });
+
+                server.inject({ url: '/file', headers: { 'range': 'bytes=1-5' } }, function (res) {
+
+                    expect(res.statusCode).to.equal(206);
+                    expect(res.headers['content-encoding']).to.not.exist();
+                    expect(res.headers['content-length']).to.equal(3);
+                    expect(res.headers['content-range']).to.equal('bytes 1-3/4');
+                    expect(res.headers['content-type']).to.not.exist();
                     done();
                 });
             });
