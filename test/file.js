@@ -45,7 +45,7 @@ describe('file', () => {
             const server = provisionServer({ routes: { files: { relativeTo: __dirname } } });
             const handler = (request, reply) => {
 
-                reply.file('../package.json').code(499);
+                reply.file('package.json', { confine: '../' }).code(499);
             };
 
             server.route({ method: 'GET', path: '/file', handler: handler });
@@ -66,7 +66,7 @@ describe('file', () => {
             const server = provisionServer();
             const handler = (request, reply) => {
 
-                reply.file('../package.json');
+                reply.file('../package.json', { confine: false });
             };
 
             server.route({ method: 'GET', path: '/file', handler: handler, config: { files: { relativeTo: __dirname } } });
@@ -180,7 +180,7 @@ describe('file', () => {
             const server = provisionServer({ routes: { files: { relativeTo: __dirname } } });
             const handler = (request, reply) => {
 
-                reply.file(Path.join(__dirname, '..', 'package.json'), { mode: 'attachment' });
+                reply.file(Path.join(__dirname, '..', 'package.json'), { confine: '..', mode: 'attachment' });
             };
 
             server.route({ method: 'GET', path: '/file', handler: handler });
@@ -201,7 +201,7 @@ describe('file', () => {
             const server = provisionServer({ routes: { files: { relativeTo: __dirname } } });
             const handler = (request, reply) => {
 
-                reply.file(Path.join(__dirname, '..', 'package.json'), { mode: 'attachment', filename: 'attachment.json' });
+                reply.file(Path.join(__dirname, '..', 'package.json'), { confine: '..', mode: 'attachment', filename: 'attachment.json' });
             };
 
             server.route({ method: 'GET', path: '/file', handler: handler });
@@ -222,7 +222,7 @@ describe('file', () => {
             const server = provisionServer({ routes: { files: { relativeTo: __dirname } } });
             const handler = (request, reply) => {
 
-                reply.file(Path.join(__dirname, '..', 'package.json'), { mode: 'inline' });
+                reply.file(Path.join(__dirname, '..', 'package.json'), { confine: '..', mode: 'inline' });
             };
 
             server.route({ method: 'GET', path: '/file', handler: handler });
@@ -243,7 +243,7 @@ describe('file', () => {
             const server = provisionServer({ routes: { files: { relativeTo: __dirname } } });
             const handler = (request, reply) => {
 
-                reply.file(Path.join(__dirname, '..', 'package.json'), { mode: 'inline', filename: 'attachment.json' });
+                reply.file(Path.join(__dirname, '..', 'package.json'), { confine: '..', mode: 'inline', filename: 'attachment.json' });
             };
 
             server.route({ method: 'GET', path: '/file', handler: handler });
@@ -287,7 +287,7 @@ describe('file', () => {
 
         it('returns a file using the built-in handler config', (done) => {
 
-            const server = provisionServer({ routes: { files: { relativeTo: __dirname } } });
+            const server = provisionServer({ routes: { files: { relativeTo: Path.join(__dirname, '..') } } });
             server.route({ method: 'GET', path: '/staticfile', handler: { file: Path.join(__dirname, '..', 'package.json') } });
 
             server.inject('/staticfile', (res) => {
@@ -304,10 +304,10 @@ describe('file', () => {
 
             const filenameFn = (request) => {
 
-                return '../lib/' + request.params.file;
+                return './lib/' + request.params.file;
             };
 
-            const server = provisionServer({ routes: { files: { relativeTo: __dirname } } });
+            const server = provisionServer({ routes: { files: { relativeTo: Path.join(__dirname, '..') } } });
             server.route({ method: 'GET', path: '/filefn/{file}', handler: { file: filenameFn } });
 
             server.inject('/filefn/index.js', (res) => {
@@ -325,7 +325,7 @@ describe('file', () => {
             const server = provisionServer({ routes: { files: { relativeTo: '.' } } });
             const relativeHandler = (request, reply) => {
 
-                reply.file('./package.json');
+                reply.file('./package.json', { confine: true });
             };
 
             server.route({ method: 'GET', path: '/relativefile', handler: relativeHandler });
@@ -342,8 +342,8 @@ describe('file', () => {
 
         it('returns a file using the built-in handler config (relative path)', (done) => {
 
-            const server = provisionServer({ routes: { files: { relativeTo: __dirname } } });
-            server.route({ method: 'GET', path: '/relativestaticfile', handler: { file: '../package.json' } });
+            const server = provisionServer({ routes: { files: { relativeTo: Path.join(__dirname, '..') } } });
+            server.route({ method: 'GET', path: '/relativestaticfile', handler: { file: './package.json' } });
 
             server.inject('/relativestaticfile', (res) => {
 
@@ -373,7 +373,7 @@ describe('file', () => {
             const server = provisionServer({ routes: { files: { relativeTo: __dirname } } });
             const handler = (request, reply) => {
 
-                reply.file('../LICENSE').type('application/example');
+                reply.file('../LICENSE', { confine: false }).type('application/example');
             };
 
             server.route({ method: 'GET', path: '/file', handler: handler });
@@ -870,7 +870,7 @@ describe('file', () => {
             const server = provisionServer({ routes: { files: { relativeTo: __dirname } } });
             const handler = (request, reply) => {
 
-                reply.file(Path.join(__dirname, '..', 'package.json'));
+                reply.file(Path.join(__dirname, '..', 'package.json'), { confine: '..' });
             };
 
             server.route({ method: 'GET', path: '/file', handler: handler });
@@ -912,7 +912,7 @@ describe('file', () => {
             const server = provisionServer({ routes: { files: { relativeTo: __dirname } } });
             const handler = (request, reply) => {
 
-                reply.file(Path.join(__dirname, '..', 'package.json'));
+                reply.file(Path.join(__dirname, '..', 'package.json'), { confine: '..' });
             };
 
             server.route({ method: 'GET', path: '/file', handler: handler });
@@ -1025,7 +1025,7 @@ describe('file', () => {
             Fs.writeFileSync(filename, 'data');
 
             const server = provisionServer();
-            server.route({ method: 'GET', path: '/', handler: { file: filename } });
+            server.route({ method: 'GET', path: '/', handler: { file: { path: filename, confine: false } } });
             server.ext('onPreResponse', (request, reply) => {
 
                 Fs.unlinkSync(filename);
@@ -1045,7 +1045,7 @@ describe('file', () => {
             Fs.writeFileSync(filename, 'data');
 
             const server = provisionServer();
-            server.route({ method: 'GET', path: '/', handler: { file: filename } });
+            server.route({ method: 'GET', path: '/', handler: { file: { path: filename, confine: false } } });
             server.ext('onPreResponse', (request, reply) => {
 
                 const tempfile = filename + '~';
@@ -1133,7 +1133,7 @@ describe('file', () => {
 
 
             const server = provisionServer();
-            server.route({ method: 'GET', path: '/', handler: { file: filename } });
+            server.route({ method: 'GET', path: '/', handler: { file: { path: filename, confine: false } } });
 
             server.inject('/', (res) => {
 
@@ -1156,7 +1156,7 @@ describe('file', () => {
             };
 
             const server = provisionServer();
-            server.route({ method: 'GET', path: '/', handler: { file: filename } });
+            server.route({ method: 'GET', path: '/', handler: { file: { path: filename, confine: false } } });
 
             server.inject('/', (res) => {
 
