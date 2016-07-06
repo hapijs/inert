@@ -1236,7 +1236,7 @@ describe('file', () => {
                     expect(res.headers['content-length']).to.equal(5);
                     expect(res.headers['content-range']).to.equal('bytes 0-4/42010');
                     expect(res.headers['accept-ranges']).to.equal('bytes');
-                    expect(res.rawPayload).to.deep.equal(new Buffer('\x89PNG\r', 'ascii'));
+                    expect(res.rawPayload).to.equal(new Buffer('\x89PNG\r', 'ascii'));
                     done();
                 });
             });
@@ -1252,7 +1252,7 @@ describe('file', () => {
                     expect(res.headers['content-length']).to.equal(5);
                     expect(res.headers['content-range']).to.equal('bytes 1-5/42010');
                     expect(res.headers['accept-ranges']).to.equal('bytes');
-                    expect(res.rawPayload).to.deep.equal(new Buffer('PNG\r\n', 'ascii'));
+                    expect(res.rawPayload).to.equal(new Buffer('PNG\r\n', 'ascii'));
                     done();
                 });
             });
@@ -1268,7 +1268,7 @@ describe('file', () => {
                     expect(res.headers['content-length']).to.equal(5);
                     expect(res.headers['content-range']).to.equal('bytes 42005-42009/42010');
                     expect(res.headers['accept-ranges']).to.equal('bytes');
-                    expect(res.rawPayload).to.deep.equal(new Buffer('D\xAEB\x60\x82', 'ascii'));
+                    expect(res.rawPayload).to.equal(new Buffer('D\xAEB\x60\x82', 'ascii'));
                     done();
                 });
             });
@@ -1284,7 +1284,7 @@ describe('file', () => {
                     expect(res.headers['content-length']).to.equal(5);
                     expect(res.headers['content-range']).to.equal('bytes 42005-42009/42010');
                     expect(res.headers['accept-ranges']).to.equal('bytes');
-                    expect(res.rawPayload).to.deep.equal(new Buffer('D\xAEB\x60\x82', 'ascii'));
+                    expect(res.rawPayload).to.equal(new Buffer('D\xAEB\x60\x82', 'ascii'));
                     done();
                 });
             });
@@ -1300,7 +1300,7 @@ describe('file', () => {
                     expect(res.headers['content-length']).to.equal(5);
                     expect(res.headers['content-range']).to.equal('bytes 42005-42009/42010');
                     expect(res.headers['accept-ranges']).to.equal('bytes');
-                    expect(res.rawPayload).to.deep.equal(new Buffer('D\xAEB\x60\x82', 'ascii'));
+                    expect(res.rawPayload).to.equal(new Buffer('D\xAEB\x60\x82', 'ascii'));
                     done();
                 });
             });
@@ -1318,7 +1318,7 @@ describe('file', () => {
                         expect(res2.headers['content-length']).to.equal(5);
                         expect(res2.headers['content-range']).to.equal('bytes 42005-42009/42010');
                         expect(res2.headers['accept-ranges']).to.equal('bytes');
-                        expect(res2.rawPayload).to.deep.equal(new Buffer('D\xAEB\x60\x82', 'ascii'));
+                        expect(res2.rawPayload).to.equal(new Buffer('D\xAEB\x60\x82', 'ascii'));
                         done();
                     });
                 });
@@ -1424,7 +1424,7 @@ describe('file', () => {
                     expect(res.headers['content-length']).to.equal(4);
                     expect(res.headers['content-range']).to.equal('bytes 1-4/42010');
                     expect(res.headers['accept-ranges']).to.equal('bytes');
-                    expect(res.rawPayload).to.deep.equal(new Buffer('PNG\r', 'ascii'));
+                    expect(res.rawPayload).to.equal(new Buffer('PNG\r', 'ascii'));
                     expect(createOptions).to.include({ start: 1, end: 4 });
                     done();
                 });
