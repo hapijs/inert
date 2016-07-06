@@ -1529,6 +1529,22 @@ describe('file', () => {
                     done();
                 });
             });
+
+            it('ignores range request when disabled in route config', (done) => {
+
+                const server = provisionServer();
+                server.route({ method: 'GET', path: '/file',
+                    handler: { file: { path: Path.join(__dirname, 'file/image.png') } },
+                    config: { response: { ranges: false } }
+                });
+
+                server.inject({ url: '/file', headers: { 'range': 'bytes=0-4' } }, (res) => {
+
+                    expect(res.statusCode).to.equal(200);
+                    expect(res.headers['accept-ranges']).to.not.exist();
+                    done();
+                });
+            });
         });
 
         it('has not leaked file descriptors', { skip: process.platform === 'win32' }, (done) => {
