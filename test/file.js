@@ -1106,7 +1106,7 @@ describe('file', () => {
             Fs.writeFileSync(filename, 'data');
 
             const server = provisionServer();
-            server.route({ method: 'GET', path: '/', handler: { file: filename } });
+            server.route({ method: 'GET', path: '/', handler: { file: { path: filename, confine: false } } });
             server.ext('onPreResponse', (request, reply) => {
 
                 reply(Boom.internal('crapping out'));
@@ -1181,14 +1181,18 @@ describe('file', () => {
             }
 
             const server = provisionServer();
-            server.route({ method: 'GET', path: '/', handler: { file: filename } });
 
+            server.route({ method: 'GET', path: '/', handler: { file: { path: filename, confine: false } } });
+
+            let didOpen = false;
             server.inject('/', (res1) => {
 
                 const orig = Fs.open;
                 Fs.open = function (path, mode, callback) {        // fake alternate permission error
 
                     Fs.open = orig;
+                    didOpen = true;
+
                     return Fs.open(path, mode, (err, fd) => {
 
                         if (err) {
@@ -1218,6 +1222,7 @@ describe('file', () => {
 
                     expect(res1.statusCode).to.equal(403);
                     expect(res2.statusCode).to.equal(403);
+                    expect(didOpen).to.equal(true);
                     done();
                 });
             });
