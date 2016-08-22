@@ -32,7 +32,7 @@ describe('directory', () => {
 
         const provisionServer = (connection, debug) => {
 
-            const server = new Hapi.Server({ debug: debug });
+            const server = new Hapi.Server({ debug });
             server.connection(connection || { routes: { files: { relativeTo: __dirname } }, router: { stripTrailingSlash: false } });
             server.register(Inert, Hoek.ignore);
             return server;
@@ -728,7 +728,7 @@ describe('directory', () => {
             };
 
             const server = provisionServer();
-            server.route({ method: 'GET', path: '/test/{path*}', handler: { directory: { path: path } } });
+            server.route({ method: 'GET', path: '/test/{path*}', handler: { directory: { path } } });
 
             server.inject('/test/index.html', (res) => {
 
@@ -746,7 +746,7 @@ describe('directory', () => {
             };
 
             const server = provisionServer(null, false);
-            server.route({ method: 'GET', path: '/test/{path*}', handler: { directory: { path: path } } });
+            server.route({ method: 'GET', path: '/test/{path*}', handler: { directory: { path } } });
 
             server.inject('/test/index.html', (res) => {
 

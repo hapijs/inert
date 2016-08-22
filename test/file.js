@@ -36,7 +36,7 @@ describe('file', () => {
 
             const server = new Hapi.Server();
             server.connection(connection || {});
-            server.register(etagsCacheMaxSize !== undefined ? { register: Inert, options: { etagsCacheMaxSize: etagsCacheMaxSize } } : Inert, Hoek.ignore);
+            server.register(etagsCacheMaxSize !== undefined ? { register: Inert, options: { etagsCacheMaxSize } } : Inert, Hoek.ignore);
             return server;
         };
 
@@ -48,7 +48,7 @@ describe('file', () => {
                 reply.file('package.json', { confine: '../' }).code(499);
             };
 
-            server.route({ method: 'GET', path: '/file', handler: handler });
+            server.route({ method: 'GET', path: '/file', handler });
 
             server.inject('/file', (res) => {
 
@@ -69,7 +69,7 @@ describe('file', () => {
                 reply.file('../package.json', { confine: false });
             };
 
-            server.route({ method: 'GET', path: '/file', handler: handler, config: { files: { relativeTo: __dirname } } });
+            server.route({ method: 'GET', path: '/file', handler, config: { files: { relativeTo: __dirname } } });
 
             server.inject('/file', (res) => {
 
@@ -183,7 +183,7 @@ describe('file', () => {
                 reply.file(Path.join(__dirname, '..', 'package.json'), { confine: '..', mode: 'attachment' });
             };
 
-            server.route({ method: 'GET', path: '/file', handler: handler });
+            server.route({ method: 'GET', path: '/file', handler });
 
             server.inject('/file', (res) => {
 
@@ -204,7 +204,7 @@ describe('file', () => {
                 reply.file(Path.join(__dirname, '..', 'package.json'), { confine: '..', mode: 'attachment', filename: 'attachment.json' });
             };
 
-            server.route({ method: 'GET', path: '/file', handler: handler });
+            server.route({ method: 'GET', path: '/file', handler });
 
             server.inject('/file', (res) => {
 
@@ -225,7 +225,7 @@ describe('file', () => {
                 reply.file(Path.join(__dirname, '..', 'package.json'), { confine: '..', mode: 'inline' });
             };
 
-            server.route({ method: 'GET', path: '/file', handler: handler });
+            server.route({ method: 'GET', path: '/file', handler });
 
             server.inject('/file', (res) => {
 
@@ -246,7 +246,7 @@ describe('file', () => {
                 reply.file(Path.join(__dirname, '..', 'package.json'), { confine: '..', mode: 'inline', filename: 'attachment.json' });
             };
 
-            server.route({ method: 'GET', path: '/file', handler: handler });
+            server.route({ method: 'GET', path: '/file', handler });
 
             server.inject('/file', (res) => {
 
@@ -376,7 +376,7 @@ describe('file', () => {
                 reply.file('../LICENSE', { confine: false }).type('application/example');
             };
 
-            server.route({ method: 'GET', path: '/file', handler: handler });
+            server.route({ method: 'GET', path: '/file', handler });
 
             server.inject('/file', (res) => {
 
@@ -873,7 +873,7 @@ describe('file', () => {
                 reply.file(Path.join(__dirname, '..', 'package.json'), { confine: '..' });
             };
 
-            server.route({ method: 'GET', path: '/file', handler: handler });
+            server.route({ method: 'GET', path: '/file', handler });
 
             server.inject({ url: '/file', headers: { 'accept-encoding': 'gzip' } }, (res) => {
 
@@ -894,7 +894,7 @@ describe('file', () => {
                 reply.file(Path.join(__dirname, 'file', 'image.png'));
             };
 
-            server.route({ method: 'GET', path: '/file', handler: handler });
+            server.route({ method: 'GET', path: '/file', handler });
 
             server.inject({ url: '/file', headers: { 'accept-encoding': 'gzip' } }, (res) => {
 
@@ -915,7 +915,7 @@ describe('file', () => {
                 reply.file(Path.join(__dirname, '..', 'package.json'), { confine: '..' });
             };
 
-            server.route({ method: 'GET', path: '/file', handler: handler });
+            server.route({ method: 'GET', path: '/file', handler });
 
             server.inject({ url: '/file', headers: { 'accept-encoding': 'deflate' } }, (res) => {
 
