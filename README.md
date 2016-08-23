@@ -157,9 +157,11 @@ type based on filename extension.:
           - `false` - header is not included. This is the default value.
           - `'attachment'`
           - `'inline'`
-      - `lookupCompressed` - if `true`, looks for the same filename with the '.gz' suffix for a
-        pre-compressed version of the file to serve if the request supports content encoding.
+      - `lookupCompressed` - if `true`, looks for for a pre-compressed version of the file with
+        the same filename with an extension, depending on the accepted encoding.
         Defaults to `false`.
+      - `lookupMap` - an `object` which maps content encoding to expected file name extension.
+        Defaults to `{ gzip: '.gz' }.
       - `etagMethod` - specifies the method used to calculate the `ETag` header response.
         Available values:
           - `'hash'` - SHA1 sum of the file contents, suitable for distributed deployments.
@@ -193,9 +195,11 @@ Generates a static file endpoint for serving a single file. `file` can be set to
           - `false` - header is not included. This is the default value.
           - `'attachment'`
           - `'inline'`
-      - `lookupCompressed` - if `true`, looks for the same filename with the '.gz' suffix
-        for a pre-compressed version of the file to serve if the request supports content
-        encoding. Defaults to `false`.
+      - `lookupCompressed` - if `true`, looks for for a pre-compressed version of the file with
+        the same filename with an extension, depending on the accepted encoding.
+        Defaults to `false`.
+      - `lookupMap` - an `object` which maps content encoding to expected file name extension.
+        Defaults to `{ gzip: '.gz' }.
       - `etagMethod` - specifies the method used to calculate the `ETag` header response.
         Available values:
           - `'hash'` - SHA1 sum of the file contents, suitable for distributed deployments.
