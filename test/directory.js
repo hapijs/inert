@@ -293,6 +293,19 @@ describe('directory', () => {
             });
         });
 
+        it('returns the "index.html" index file when route contains multiple path segments', (done) => {
+
+            const server = provisionServer();
+            server.route({ method: 'GET', path: '/directory{index}/{path*}', handler: { directory: { path: './directory/' } } });
+
+            server.inject('/directoryIndex/', (res) => {
+
+                expect(res.statusCode).to.equal(200);
+                expect(res.payload).to.contain('<p>test</p>');
+                done();
+            });
+        });
+
         it('returns the index file when found and single custom index file specified', (done) => {
 
             const server = provisionServer();
