@@ -9,11 +9,11 @@ node_js:
 sudo: false
 
 env:
-    - HAPI_VERSION="13"
-    - HAPI_VERSION="14"
-    - HAPI_VERSION="15"
+    - HAPI_VERSION="@13"
+    - HAPI_VERSION="@14"
+    - HAPI_VERSION="@15"
+    - HAPI_VERSION=""
 
 install:
     - npm install
-    - npm install hapi@$HAPI_VERSION
-
+    - npm install hapi$HAPI_VERSION
