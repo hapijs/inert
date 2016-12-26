@@ -663,7 +663,7 @@ describe('file', () => {
             });
         });
 
-        it('changes etag when content encoding is used', (done) => {
+        it('changes etag when gzip content encoding is used', (done) => {
 
             const server = provisionServer();
             server.route({ method: 'GET', path: '/file', handler: { file: Path.join(__dirname, '..', 'package.json') } });
@@ -675,6 +675,29 @@ describe('file', () => {
                 expect(res1.headers).to.include('last-modified');
 
                 server.inject({ url: '/file', headers: { 'accept-encoding': 'gzip' } }, (res2) => {
+
+                    expect(res2.statusCode).to.equal(200);
+                    expect(res2.headers.vary).to.equal('accept-encoding');
+                    expect(res2.headers.etag).to.not.equal(res1.headers.etag);
+                    expect(res2.headers.etag).to.contain(res1.headers.etag.slice(0, -1) + '-');
+                    expect(res2.headers['last-modified']).to.equal(res2.headers['last-modified']);
+                    done();
+                });
+            });
+        });
+
+        it('changes etag when br content encoding is used', (done) => {
+
+            const server = provisionServer();
+            server.route({ method: 'GET', path: '/file', handler: { file: Path.join(__dirname, '..', 'package.json') } });
+
+            server.inject('/file', (res1) => {
+
+                expect(res1.statusCode).to.equal(200);
+                expect(res1.headers).to.include('etag');
+                expect(res1.headers).to.include('last-modified');
+
+                server.inject({ url: '/file', headers: { 'accept-encoding': 'br' } }, (res2) => {
 
                     expect(res2.statusCode).to.equal(200);
                     expect(res2.headers.vary).to.equal('accept-encoding');
@@ -886,7 +909,28 @@ describe('file', () => {
             });
         });
 
-        it('returns a plain file when not compressible', (done) => {
+        it('returns a br file in the response when the request accepts br', (done) => {
+
+            const server = provisionServer({ routes: { files: { relativeTo: __dirname } } });
+            const handler = (request, reply) => {
+
+                reply.file(Path.join(__dirname, '..', 'package.json'), { confine: '..' });
+            };
+
+            server.route({ method: 'GET', path: '/file', handler: handler });
+
+            server.inject({ url: '/file', headers: { 'accept-encoding': 'br' } }, (res) => {
+
+                expect(res.statusCode).to.equal(200);
+                expect(res.headers['content-type']).to.equal('application/json; charset=utf-8');
+                expect(res.headers['content-encoding']).to.equal('br');
+                expect(res.headers['content-length']).to.not.exist();
+                expect(res.payload).to.exist();
+                done();
+            });
+        });
+
+        it('returns a plain file when not compressible (gzip)', (done) => {
 
             const server = provisionServer({ routes: { files: { relativeTo: __dirname } } });
             const handler = (request, reply) => {
@@ -897,6 +941,27 @@ describe('file', () => {
             server.route({ method: 'GET', path: '/file', handler });
 
             server.inject({ url: '/file', headers: { 'accept-encoding': 'gzip' } }, (res) => {
+
+                expect(res.statusCode).to.equal(200);
+                expect(res.headers['content-type']).to.equal('image/png');
+                expect(res.headers['content-encoding']).to.not.exist();
+                expect(res.headers['content-length']).to.equal(42010);
+                expect(res.payload).to.exist();
+                done();
+            });
+        });
+
+        it('returns a plain file when not compressible (br)', (done) => {
+
+            const server = provisionServer({ routes: { files: { relativeTo: __dirname } } });
+            const handler = (request, reply) => {
+
+                reply.file(Path.join(__dirname, 'file', 'image.png'));
+            };
+
+            server.route({ method: 'GET', path: '/file', handler: handler });
+
+            server.inject({ url: '/file', headers: { 'accept-encoding': 'br' } }, (res) => {
 
                 expect(res.statusCode).to.equal(200);
                 expect(res.headers['content-type']).to.equal('image/png');
@@ -946,6 +1011,24 @@ describe('file', () => {
             });
         });
 
+        it('returns a br file using precompressed file', (done) => {
+
+            const content = Fs.readFileSync('./test/file/image.png.br');
+
+            const server = provisionServer();
+            server.route({ method: 'GET', path: '/file', handler: { file: { path: './test/file/image.png', lookupCompressed: true } } });
+
+            server.inject({ url: '/file', headers: { 'accept-encoding': 'br' } }, (res) => {
+
+                expect(res.statusCode).to.equal(200);
+                expect(res.headers['content-type']).to.equal('image/png');
+                expect(res.headers['content-encoding']).to.equal('br');
+                expect(res.headers['content-length']).to.equal(content.length);
+                expect(res.rawPayload.length).to.equal(content.length);
+                done();
+            });
+        });
+
         it('returns a gzipped file when precompressed file not found', (done) => {
 
             const server = provisionServer();
@@ -961,7 +1044,22 @@ describe('file', () => {
             });
         });
 
-        it('returns a 304 when using precompressed file and if-modified-since set', (done) => {
+        it('returns a br file when precompressed file not found', (done) => {
+
+            const server = provisionServer();
+            server.route({ method: 'GET', path: '/file', handler: { file: { path: './test/file/note.txt', lookupCompressed: true } } });
+
+            server.inject({ url: '/file', headers: { 'accept-encoding': 'br' } }, (res) => {
+
+                expect(res.statusCode).to.equal(200);
+                expect(res.headers['content-encoding']).to.equal('br');
+                expect(res.headers['content-length']).to.not.exist();
+                expect(res.payload).to.exist();
+                done();
+            });
+        });
+
+        it('returns a 304 when using gzip precompressed file and if-modified-since set', (done) => {
 
             const server = provisionServer();
             server.route({ method: 'GET', path: '/file', handler: { file: { path: './test/file/image.png', lookupCompressed: true } } });
@@ -969,6 +1067,21 @@ describe('file', () => {
             server.inject('/file', (res1) => {
 
                 server.inject({ url: '/file', headers: { 'if-modified-since': res1.headers.date, 'accept-encoding': 'gzip' } }, (res2) => {
+
+                    expect(res2.statusCode).to.equal(304);
+                    done();
+                });
+            });
+        });
+
+        it('returns a 304 when using br precompressed file and if-modified-since set', (done) => {
+
+            const server = provisionServer();
+            server.route({ method: 'GET', path: '/file', handler: { file: { path: './test/file/image.png', lookupCompressed: true } } });
+
+            server.inject('/file', (res1) => {
+
+                server.inject({ url: '/file', headers: { 'if-modified-since': res1.headers.date, 'accept-encoding': 'br' } }, (res2) => {
 
                     expect(res2.statusCode).to.equal(304);
                     done();
@@ -991,12 +1104,27 @@ describe('file', () => {
             });
         });
 
-        it('ignores precompressed file when connection compression is disabled', (done) => {
+        it('ignores precompressed file when connection compression is disabled (gzip)', (done) => {
 
             const server = provisionServer({ compression: false });
             server.route({ method: 'GET', path: '/file', handler: { file: { path: './test/file/image.png', lookupCompressed: true } } });
 
             server.inject({ url: '/file', headers: { 'accept-encoding': 'gzip' } }, (res) => {
+
+                expect(res.statusCode).to.equal(200);
+                expect(res.headers['content-type']).to.equal('image/png');
+                expect(res.headers['content-encoding']).to.not.exist();
+                expect(res.payload).to.exist();
+                done();
+            });
+        });
+
+        it('ignores precompressed file when connection compression is disabled (br)', (done) => {
+
+            const server = provisionServer({ compression: false });
+            server.route({ method: 'GET', path: '/file', handler: { file: { path: './test/file/image.png', lookupCompressed: true } } });
+
+            server.inject({ url: '/file', headers: { 'accept-encoding': 'br' } }, (res) => {
 
                 expect(res.statusCode).to.equal(200);
                 expect(res.headers['content-type']).to.equal('image/png');
@@ -1406,7 +1534,7 @@ describe('file', () => {
                 });
             });
 
-            it('reads partial file content for a non-compressible file', (done) => {
+            it('reads partial file content for a non-compressible file (gzip)', (done) => {
 
                 const server = provisionServer();
                 server.route({ method: 'GET', path: '/file', handler: { file: { path: Path.join(__dirname, 'file/image.png'), etagMethod: false } } });
@@ -1435,6 +1563,35 @@ describe('file', () => {
                 });
             });
 
+            it('reads partial file content for a non-compressible file (br)', (done) => {
+
+                const server = provisionServer();
+                server.route({ method: 'GET', path: '/file', handler: { file: { path: Path.join(__dirname, 'file/image.png'), etagMethod: false } } });
+
+                // Catch createReadStream options
+
+                let createOptions;
+                const orig = Fs.createReadStream;
+                Fs.createReadStream = function (path, options) {
+
+                    Fs.createReadStream = orig;
+                    createOptions = options;
+
+                    return Fs.createReadStream(path, options);
+                };
+
+                server.inject({ url: '/file', headers: { 'range': 'bytes=1-4', 'accept-encoding': 'br' } }, (res) => {
+
+                    expect(res.statusCode).to.equal(206);
+                    expect(res.headers['content-length']).to.equal(4);
+                    expect(res.headers['content-range']).to.equal('bytes 1-4/42010');
+                    expect(res.headers['accept-ranges']).to.equal('bytes');
+                    expect(res.rawPayload).to.deep.equal(new Buffer('PNG\r', 'ascii'));
+                    expect(createOptions).to.include({ start: 1, end: 4 });
+                    done();
+                });
+            });
+
             it('returns 200 when content-length is missing', (done) => {
 
                 const server = provisionServer();
@@ -1454,7 +1611,7 @@ describe('file', () => {
                 });
             });
 
-            it('returns 200 for dynamically compressed responses', (done) => {
+            it('returns 200 for dynamically compressed gzip responses', (done) => {
 
                 const server = provisionServer();
                 server.route({ method: 'GET', path: '/file', handler: { file: { path: Path.join(__dirname, 'file/note.txt'), lookupCompressed: false } } });
@@ -1469,7 +1626,22 @@ describe('file', () => {
                 });
             });
 
-            it('returns a subset of a file when compression is disabled', (done) => {
+            it('returns 200 for dynamically compressed br responses', (done) => {
+
+                const server = provisionServer();
+                server.route({ method: 'GET', path: '/file', handler: { file: { path: Path.join(__dirname, 'file/note.txt'), lookupCompressed: false } } });
+                server.inject({ url: '/file', headers: { 'range': 'bytes=1-3', 'accept-encoding': 'br' } }, (res) => {
+
+                    expect(res.statusCode).to.equal(200);
+                    expect(res.headers['content-encoding']).to.equal('br');
+                    expect(res.headers['content-length']).to.not.exist();
+                    expect(res.headers['content-range']).to.not.exist();
+                    expect(res.headers['accept-ranges']).to.equal('bytes');
+                    done();
+                });
+            });
+
+            it('returns a subset of a file when compression is disabled (gzip)', (done) => {
 
                 const server = provisionServer({ compression: false });
                 server.route({ method: 'GET', path: '/file', handler: { file: { path: Path.join(__dirname, 'file/note.txt'), lookupCompressed: false } } });
@@ -1483,7 +1655,21 @@ describe('file', () => {
                 });
             });
 
-            it('returns a subset of a file using precompressed file', (done) => {
+            it('returns a subset of a file when compression is disabled (br)', (done) => {
+
+                const server = provisionServer({ compression: false });
+                server.route({ method: 'GET', path: '/file', handler: { file: { path: Path.join(__dirname, 'file/note.txt'), lookupCompressed: false } } });
+                server.inject({ url: '/file', headers: { 'range': 'bytes=1-3', 'accept-encoding': 'br' } }, (res) => {
+
+                    expect(res.statusCode).to.equal(206);
+                    expect(res.headers['content-encoding']).to.not.exist();
+                    expect(res.headers['content-length']).to.equal(3);
+                    expect(res.headers['content-range']).to.equal('bytes 1-3/4');
+                    done();
+                });
+            });
+
+            it('returns a subset of a file using gzip precompressed file', (done) => {
 
                 const server = provisionServer();
                 server.route({ method: 'GET', path: '/file', handler: { file: { path: Path.join(__dirname, 'file/image.png'), lookupCompressed: true } } });
@@ -1495,6 +1681,22 @@ describe('file', () => {
                     expect(res.headers['content-range']).to.equal('bytes 10-18/41936');
                     expect(res.headers['accept-ranges']).to.equal('bytes');
                     expect(res.payload).to.equal('image.png');
+                    done();
+                });
+            });
+
+            it('returns a subset of a file using br precompressed file', (done) => {
+
+                const server = provisionServer();
+                server.route({ method: 'GET', path: '/file', handler: { file: { path: Path.join(__dirname, 'file/image.png'), lookupCompressed: true } } });
+                server.inject({ url: '/file', headers: { 'range': 'bytes=10-18', 'accept-encoding': 'br' } }, (res) => {
+
+                    expect(res.statusCode).to.equal(206);
+                    expect(res.headers['content-encoding']).to.equal('br');
+                    expect(res.headers['content-length']).to.equal(9);
+                    expect(res.headers['content-range']).to.equal('bytes 10-18/41978');
+                    expect(res.headers['accept-ranges']).to.equal('bytes');
+                    expect(res.rawPayload).to.deep.equal(new Buffer([0x3f, 0x11, 0x01, 0x7e, 0x14, 0xc6, 0xcd, 0xce, 0x9b]));
                     done();
                 });
             });

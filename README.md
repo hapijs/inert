@@ -14,7 +14,7 @@ interface with a `file` method for serving file based resources.
 
  * Files are served with cache friendly `last-modified` and `etag` headers.
  * Generated file listings and custom indexes.
- * Precompressed file support for `content-encoding: gzip` responses.
+ * Precompressed file support for `content-encoding: gzip` and `content-encoding: br` responses.
  * File attachment support using `content-disposition`  header.
 
 ## Index
@@ -157,7 +157,7 @@ type based on filename extension.:
           - `false` - header is not included. This is the default value.
           - `'attachment'`
           - `'inline'`
-      - `lookupCompressed` - if `true`, looks for the same filename with the '.gz' suffix for a
+      - `lookupCompressed` - if `true`, looks for the same filename with the '.gz' or '.br' suffix for a
         pre-compressed version of the file to serve if the request supports content encoding.
         Defaults to `false`.
       - `etagMethod` - specifies the method used to calculate the `ETag` header response.
@@ -193,7 +193,7 @@ Generates a static file endpoint for serving a single file. `file` can be set to
           - `false` - header is not included. This is the default value.
           - `'attachment'`
           - `'inline'`
-      - `lookupCompressed` - if `true`, looks for the same filename with the '.gz' suffix
+      - `lookupCompressed` - if `true`, looks for the same filename with the '.gz' or '.br' suffix
         for a pre-compressed version of the file to serve if the request supports content
         encoding. Defaults to `false`.
       - `etagMethod` - specifies the method used to calculate the `ETag` header response.
@@ -238,7 +238,7 @@ object with the following options:
     ensuring relative links inside the response are resolved correctly. Disabled when the
     server config `router.stripTrailingSlash` is `true. `Defaults to `false`.
   - `lookupCompressed` - optional boolean, instructs the file processor to look for the same
-    filename with the '.gz' suffix for a pre-compressed version of the file to serve if the
+    filename with the '.gz' or '.br' suffix for a pre-compressed version of the file to serve if the
     request supports content encoding. Defaults to `false`.
   - `etagMethod` - specifies the method used to calculate the `ETag` header response.
     Available values:
