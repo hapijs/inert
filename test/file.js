@@ -946,6 +946,25 @@ describe('file', () => {
             });
         });
 
+        it('returns a gzipped file using precompressed file using lookupMap', (done) => {
+
+            const content = Fs.readFileSync('./test/file/image.jpg#gz');
+            const lookupMap = { gzip: '#gz' };
+
+            const server = provisionServer();
+            server.route({ method: 'GET', path: '/file', handler: { file: { path: './test/file/image.jpg', lookupCompressed: true, lookupMap } } });
+
+            server.inject({ url: '/file', headers: { 'accept-encoding': 'gzip' } }, (res) => {
+
+                expect(res.statusCode).to.equal(200);
+                expect(res.headers['content-type']).to.equal('image/jpeg');
+                expect(res.headers['content-encoding']).to.equal('gzip');
+                expect(res.headers['content-length']).to.equal(content.length);
+                expect(res.rawPayload.length).to.equal(content.length);
+                done();
+            });
+        });
+
         it('returns a gzipped file when precompressed file not found', (done) => {
 
             const server = provisionServer();
