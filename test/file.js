@@ -1040,7 +1040,7 @@ describe('file', () => {
 
         it('responds correctly when file is removed while processing', (done) => {
 
-            const filename = Hoek.uniqueFilename(Os.tmpDir()) + '.package.json';
+            const filename = Hoek.uniqueFilename(Os.tmpdir()) + '.package.json';
             Fs.writeFileSync(filename, 'data');
 
             const server = provisionServer();
@@ -1060,7 +1060,7 @@ describe('file', () => {
 
         it('responds correctly when file is changed while processing', (done) => {
 
-            const filename = Hoek.uniqueFilename(Os.tmpDir()) + '.package.json';
+            const filename = Hoek.uniqueFilename(Os.tmpdir()) + '.package.json';
             Fs.writeFileSync(filename, 'data');
 
             const server = provisionServer();
@@ -1121,7 +1121,7 @@ describe('file', () => {
 
         it('returns error when aborted while processing', (done) => {
 
-            const filename = Hoek.uniqueFilename(Os.tmpDir()) + '.package.json';
+            const filename = Hoek.uniqueFilename(Os.tmpdir()) + '.package.json';
             Fs.writeFileSync(filename, 'data');
 
             const server = provisionServer();
@@ -1140,7 +1140,7 @@ describe('file', () => {
 
         it('returns error when stat fails unexpectedly', (done) => {
 
-            const filename = Hoek.uniqueFilename(Os.tmpDir()) + '.package.json';
+            const filename = Hoek.uniqueFilename(Os.tmpdir()) + '.package.json';
             Fs.writeFileSync(filename, 'data');
 
             const orig = Fs.fstat;
@@ -1163,7 +1163,7 @@ describe('file', () => {
 
         it('returns error when open fails unexpectedly', (done) => {
 
-            const filename = Hoek.uniqueFilename(Os.tmpDir()) + '.package.json';
+            const filename = Hoek.uniqueFilename(Os.tmpdir()) + '.package.json';
             Fs.writeFileSync(filename, 'data');
 
             const orig = Fs.open;
@@ -1186,7 +1186,7 @@ describe('file', () => {
 
         it('returns a 403 when missing file read permission', (done) => {
 
-            const filename = Hoek.uniqueFilename(Os.tmpDir()) + '.package.json';
+            const filename = Hoek.uniqueFilename(Os.tmpdir()) + '.package.json';
             Fs.writeFileSync(filename, 'data');
 
             let retainedFd;

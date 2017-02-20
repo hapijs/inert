@@ -799,7 +799,7 @@ describe('directory', () => {
 
         it('returns a 403 when missing file read permission', (done) => {
 
-            const filename = Hoek.uniqueFilename(Os.tmpDir());
+            const filename = Hoek.uniqueFilename(Os.tmpdir());
             Fs.writeFileSync(filename, 'data');
 
             let fd;
