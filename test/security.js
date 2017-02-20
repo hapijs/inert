@@ -47,8 +47,14 @@ describe('security', () => {
 
     it('blocks path traversal to files outside of hosted directory is not allowed', (done) => {
 
+        const forbidden = (request, reply) => {
+
+            return reply().code(403);
+        };
+
         const server = provisionServer();
         server.route({ method: 'GET', path: '/{path*}', handler: { directory: { path: './directory' } } });
+        server.route({ method: 'GET', path: '/security.js', handler: forbidden });
 
         server.inject('/../security.js', (res) => {
 

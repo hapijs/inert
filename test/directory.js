@@ -52,8 +52,14 @@ describe('directory', () => {
 
         it('returns a 403 when requesting a path containing \'..\'', (done) => {
 
+            const forbidden = (request, reply) => {
+
+                return reply().code(403);
+            };
+
             const server = provisionServer();
             server.route({ method: 'GET', path: '/directory/{path*}', handler: { directory: { path: './' } } });
+            server.route({ method: 'GET', path: '/', handler: forbidden });
 
             server.inject('/directory/..', (res) => {
 
