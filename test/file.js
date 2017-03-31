@@ -259,6 +259,46 @@ describe('file', () => {
             });
         });
 
+        it('returns a partial file with the start option', (done) => {
+
+            const server = provisionServer({ routes: { files: { relativeTo: __dirname } } });
+            const handler = (request, reply) => {
+
+                reply.file(Path.join('file', 'note.txt'), { start: 2 });
+            };
+
+            server.route({ method: 'GET', path: '/file', handler });
+
+            server.inject('/file', (res) => {
+
+                expect(res.statusCode).to.equal(200);
+                expect(res.payload).to.equal('st');
+                expect(res.headers['content-type']).to.equal('text/plain; charset=utf-8');
+                expect(res.headers['content-length']).to.equal(2);
+                done();
+            });
+        });
+
+        it('returns a partial file with the start and end option', (done) => {
+
+            const server = provisionServer({ routes: { files: { relativeTo: __dirname } } });
+            const handler = (request, reply) => {
+
+                reply.file(Path.join('file', 'note.txt'), { start: 1, end: 2 });
+            };
+
+            server.route({ method: 'GET', path: '/file', handler });
+
+            server.inject('/file', (res) => {
+
+                expect(res.statusCode).to.equal(200);
+                expect(res.payload).to.equal('es');
+                expect(res.headers['content-type']).to.equal('text/plain; charset=utf-8');
+                expect(res.headers['content-length']).to.equal(2);
+                done();
+            });
+        });
+
         it('returns a 404 when the file is not found', (done) => {
 
             const server = provisionServer({ routes: { files: { relativeTo: '/no/such/path/x1' } } });
@@ -1025,6 +1065,45 @@ describe('file', () => {
             });
         });
 
+        it('ignores precompressed file when using start option', (done) => {
+
+            const server = provisionServer();
+            server.route({ method: 'GET', path: '/file', handler: { file: {
+                path: './test/file/image.png',
+                lookupCompressed: true,
+                start: 5
+            } } });
+
+            server.inject({ url: '/file', headers: { 'accept-encoding': 'gzip' } }, (res) => {
+
+                expect(res.statusCode).to.equal(200);
+                expect(res.headers['content-type']).to.equal('image/png');
+                expect(res.headers['content-encoding']).to.not.exist();
+                expect(res.payload).to.exist();
+                done();
+            });
+        });
+
+        it('ignores precompressed file when using start option', (done) => {
+
+            const server = provisionServer();
+            server.route({ method: 'GET', path: '/file', handler: { file: {
+                path: './test/file/image.png',
+                lookupCompressed: true,
+                end: 199
+            } } });
+
+            server.inject({ url: '/file', headers: { 'accept-encoding': 'gzip' } }, (res) => {
+
+                expect(res.statusCode).to.equal(200);
+                expect(res.headers['content-length']).to.equal(200);
+                expect(res.headers['content-type']).to.equal('image/png');
+                expect(res.headers['content-encoding']).to.not.exist();
+                expect(res.payload).to.exist();
+                done();
+            });
+        });
+
         it('does not throw an error when adding a route with a parameter and function path', (done) => {
 
             const fn = () => {
@@ -1566,6 +1645,45 @@ describe('file', () => {
 
                     expect(res.statusCode).to.equal(200);
                     expect(res.headers['accept-ranges']).to.not.exist();
+                    done();
+                });
+            });
+
+            it('returns a subset of a file with start option', (done) => {
+
+                const server = provisionServer();
+                server.route({ method: 'GET', path: '/file', handler: { file: {
+                    path: Path.join(__dirname, 'file/image.png'),
+                    start: 1
+                } } });
+
+                server.inject({ url: '/file', headers: { 'range': 'bytes=2-3' } }, (res) => {
+
+                    expect(res.statusCode).to.equal(206);
+                    expect(res.headers['content-length']).to.equal(2);
+                    expect(res.headers['content-range']).to.equal('bytes 2-3/42009');
+                    expect(res.headers['accept-ranges']).to.equal('bytes');
+                    expect(res.rawPayload).to.equal(new Buffer('G\r', 'ascii'));
+                    done();
+                });
+            });
+
+            it('returns a subset of a file with start and end option', (done) => {
+
+                const server = provisionServer();
+                server.route({ method: 'GET', path: '/file', handler: { file: {
+                    path: Path.join(__dirname, 'file/image.png'),
+                    start: 2,
+                    end: 400
+                } } });
+
+                server.inject({ url: '/file', headers: { 'range': 'bytes=0-2' } }, (res) => {
+
+                    expect(res.statusCode).to.equal(206);
+                    expect(res.headers['content-length']).to.equal(3);
+                    expect(res.headers['content-range']).to.equal('bytes 0-2/399');
+                    expect(res.headers['accept-ranges']).to.equal('bytes');
+                    expect(res.rawPayload).to.equal(new Buffer('NG\r', 'ascii'));
                     done();
                 });
             });
