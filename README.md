@@ -169,6 +169,8 @@ type based on filename extension.:
           - `'simple'` - Hex encoded size and modification date, suitable when files are stored
             on a single server.
           - `false` - Disable ETag computation.
+      - `start` - offset in file to reading from, defaults to 0.
+      - `end` - offset in file to stop reading from. If not set, will read to end of file.
 
 Returns a standard [response](https://github.com/hapijs/hapi/blob/master/API.md#response-object) object.
 
@@ -207,6 +209,8 @@ Generates a static file endpoint for serving a single file. `file` can be set to
           - `'simple'` - Hex encoded size and modification date, suitable when files are stored
             on a single server.
           - `false` - Disable ETag computation.
+      - `start` - offset in file to reading from, defaults to 0.
+      - `end` - offset in file to stop reading from. If not set, will read to end of file.
 
 ### The `directory` handler
 
