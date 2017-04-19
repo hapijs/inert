@@ -240,12 +240,11 @@ object with the following options:
     directory is requested without an index document. Defaults to `false`.
     Value can be:
       - a boolean
-      - a function with the signature `function(context, callback)` where context is an
-        object that provides:
+      - a function with the signature `function(context, callback)`. Callback must be called
+        with `callback(err, renderedHtml)`. Context is an object that provides:
           - `location` - a `string` value of current location
           - `parentPath` - a `string` value of parent directory, `null` if none
           - `files` - an `array` of files in the current location
-        Callback must be called with `callback(err, renderedHtml)`
   - `showHidden` - optional boolean, determines if hidden files will be shown and served.
     Defaults to `false`.
   - `redirectToSlash` - optional boolean, determines if requests for a directory without a
