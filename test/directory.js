@@ -482,7 +482,7 @@ describe('directory', () => {
 
             const listingFn = (context, callback) => {
 
-                expect(context).to.have.include(['location', 'files']);
+                expect(context).to.have.include(['parentPath', 'location', 'files']);
                 callback(null, '<html>' + context.location + '</html>');
             };
 
@@ -492,25 +492,6 @@ describe('directory', () => {
             server.inject('/listingfn/', (res) => {
 
                 expect(res.payload).to.equal('<html>/listingfn/</html>');
-                expect(res.statusCode).to.equal(200);
-                done();
-            });
-        });
-
-        it('returns listing html provided from listing function', (done) => {
-
-            const listingFn = (context, callback) => {
-
-                expect(context).to.have.include(['location', 'files']);
-                callback(null, '<html>listing</html>');
-            };
-
-            const server = provisionServer();
-            server.route({ method: 'GET', path: '/listingfn/{path*}', handler: { directory: { path: './', listing: listingFn } } });
-
-            server.inject('/listingfn/', (res) => {
-
-                expect(res.payload).to.equal('<html>listing</html>');
                 expect(res.statusCode).to.equal(200);
                 done();
             });
