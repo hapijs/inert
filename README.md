@@ -246,7 +246,11 @@ object with the following options:
         that provides:
          - `location` - the url path of the location being rendered.
          - `parentPath` - the parent directory location path, `null` if none.
-         - `files` - an array of filenames in the current location.
+         - `files` - an array of files in the current location. A file is an `object` with
+           the following values:
+            - `uri` - a string with the uri path for the file.
+            - `name` - a string with the file name.
+            - `hidden` - a boolean that signals whether the file is hidden.
   - `showHidden` - optional boolean, determines if hidden files will be shown and served.
     Defaults to `false`.
   - `redirectToSlash` - optional boolean, determines if requests for a directory without a

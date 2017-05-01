@@ -268,7 +268,7 @@ describe('directory', () => {
 
                 return callback(null, context.files.map((file) => {
 
-                    return file.path;
+                    return file.uri;
                 }));
             };
 
