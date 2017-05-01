@@ -307,11 +307,11 @@ describe('directory', () => {
             });
         });
 
-        it('returns a 500 when listing render function errors', (done) => {
+        it('returns a 500 when listing render function throws', (done) => {
 
             const renderFn = (context, callback) => {
 
-                return callback(new Error('Fail!'));
+                throw new Error('Fail!');
             };
 
             const server = provisionServer();
@@ -320,6 +320,23 @@ describe('directory', () => {
             server.inject('/directorylist/', (res) => {
 
                 expect(res.statusCode).to.equal(500);
+                done();
+            });
+        });
+
+        it('returns listing render function errors', (done) => {
+
+            const renderFn = (context, callback) => {
+
+                return callback(Boom.resourceGone());
+            };
+
+            const server = provisionServer();
+            server.route({ method: 'GET', path: '/directorylist/{path*}', handler: { directory: { path: '../', listing: renderFn } } });
+
+            server.inject('/directorylist/', (res) => {
+
+                expect(res.statusCode).to.equal(410);
                 done();
             });
         });
