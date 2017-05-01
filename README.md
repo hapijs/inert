@@ -161,7 +161,7 @@ type based on filename extension.:
         the same filename with an extension, depending on the accepted encoding.
         Defaults to `false`.
       - `lookupMap` - an `object` which maps content encoding to expected file name extension.
-        Defaults to `{ gzip: '.gz' }.
+        Defaults to `{ gzip: '.gz' }`.
       - `etagMethod` - specifies the method used to calculate the `ETag` header response.
         Available values:
           - `'hash'` - SHA1 sum of the file contents, suitable for distributed deployments.
@@ -201,7 +201,7 @@ Generates a static file endpoint for serving a single file. `file` can be set to
         the same filename with an extension, depending on the accepted encoding.
         Defaults to `false`.
       - `lookupMap` - an `object` which maps content encoding to expected file name extension.
-        Defaults to `{ gzip: '.gz' }.
+        Defaults to `{ gzip: '.gz' }`.
       - `etagMethod` - specifies the method used to calculate the `ETag` header response.
         Available values:
           - `'hash'` - SHA1 sum of the file contents, suitable for distributed deployments.
@@ -246,8 +246,10 @@ object with the following options:
     ensuring relative links inside the response are resolved correctly. Disabled when the
     server config `router.stripTrailingSlash` is `true. `Defaults to `false`.
   - `lookupCompressed` - optional boolean, instructs the file processor to look for the same
-    filename with the '.gz' suffix for a pre-compressed version of the file to serve if the
-    request supports content encoding. Defaults to `false`.
+    filename with an extension, depending on the accepted encoding, for a pre-compressed
+    version of the file to serve. Defaults to `false`.
+  - `lookupMap` - an `object` which maps content encoding to expected file name extension.
+    Defaults to `{ gzip: '.gz' }`.
   - `etagMethod` - specifies the method used to calculate the `ETag` header response.
     Available values:
       - `'hash'` - SHA1 sum of the file contents, suitable for distributed deployments.
