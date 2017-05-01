@@ -4,6 +4,7 @@
 
 const Fs = require('fs');
 const Os = require('os');
+const Stream = require('stream');
 const Path = require('path');
 const Boom = require('boom');
 const Code = require('code');
@@ -303,6 +304,34 @@ describe('directory', () => {
                 expect(res.statusCode).to.equal(200);
                 expect(res.headers['content-type']).to.equal('text/plain; charset=ascii');
                 expect(res.payload).to.contain('package.json');
+                done();
+            });
+        });
+
+        it('handles stream based listing render', (done) => {
+
+            const renderFn = (context, callback) => {
+
+                const stream = new Stream.Readable();
+                stream._read = function () {};
+
+                setImmediate(() => {
+
+                    stream.push('hello', 'utf-8');
+                    stream.push(null);
+                });
+
+                return callback(null, stream, 'text/plain');
+            };
+
+            const server = provisionServer();
+            server.route({ method: 'GET', path: '/directorylist/{path*}', handler: { directory: { path: '../', listing: renderFn } } });
+
+            server.inject('/directorylist/', (res) => {
+
+                expect(res.statusCode).to.equal(200);
+                expect(res.headers['content-type']).to.equal('text/plain; charset=utf-8');
+                expect(res.payload).to.equal('hello');
                 done();
             });
         });
