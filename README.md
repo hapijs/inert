@@ -244,8 +244,10 @@ object with the following options:
       - a function with the signature `function(context, callback)`, where the callback must
         be called with `callback(err, rendered, type, charset)`, and context is an `object`
         that provides:
-         - `location` - the url path of the location being rendered.
-         - `parentPath` - the parent directory location path, `null` if none.
+         - `uri` - a string with the uri path of the location being rendered.
+         - `location` - a string with the decoded uri path of the location being rendered.
+         - `path` - a string with the file system path of the location being rendered.
+         - `parent` - a string with the uri of the parent directory, `null` if none.
          - `files` - an array of files in the current location. A file is an `object` with
            the following values:
             - `uri` - a string with the uri path for the file.
