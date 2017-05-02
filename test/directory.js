@@ -264,7 +264,11 @@ describe('directory', () => {
 
         it('returns a list of files when listing is a render function', (done) => {
 
-            const renderFn = (context, callback) => {
+            const renderFn = (request, context, callback) => {
+
+                expect(request).to.exist();
+                expect(request).to.include(['path', 'info', 'raw']);
+                expect(context).to.include(['uri', 'location', 'path', 'parent']);
 
                 return callback(null, context.files.map((file) => {
 
@@ -286,7 +290,7 @@ describe('directory', () => {
 
         it('handles all arguments to listing render function callback', (done) => {
 
-            const renderFn = (context, callback) => {
+            const renderFn = (request, context, callback) => {
 
                 const list = context.files.map((file) => {
 
@@ -310,7 +314,7 @@ describe('directory', () => {
 
         it('handles stream based listing render', (done) => {
 
-            const renderFn = (context, callback) => {
+            const renderFn = (request, context, callback) => {
 
                 const stream = new Stream.Readable();
                 stream._read = function () {};
@@ -338,7 +342,7 @@ describe('directory', () => {
 
         it('returns a 500 when listing render function throws', (done) => {
 
-            const renderFn = (context, callback) => {
+            const renderFn = (request, context, callback) => {
 
                 throw new Error('Fail!');
             };
@@ -355,7 +359,7 @@ describe('directory', () => {
 
         it('returns listing render function errors', (done) => {
 
-            const renderFn = (context, callback) => {
+            const renderFn = (request, context, callback) => {
 
                 return callback(Boom.resourceGone());
             };

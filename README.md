@@ -241,7 +241,7 @@ object with the following options:
     Value can be:
       - `false` - Disable directory listings. Default value.
       - `true` - Generates a simple html listing.
-      - a function with the signature `function(context, callback)`, where the callback must
+      - a function with the signature `function(request, context, callback)`, where the callback must
         be called with `callback(err, rendered, type, charset)`, and context is an `object`
         that provides:
          - `uri` - a string with the uri path of the location being rendered.
