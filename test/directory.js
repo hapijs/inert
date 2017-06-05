@@ -461,6 +461,42 @@ describe('directory', () => {
             });
         });
 
+        it('returns 500 when listing function returns error from callback', (done) => {
+
+            const listingFn = (context, callback) => {
+
+                callback(true, null);
+            };
+
+            const server = provisionServer();
+            server.route({ method: 'GET', path: '/listingfn/{path*}', handler: { directory: { path: './', listing: listingFn } } });
+
+            server.inject('/listingfn/', (res) => {
+
+                expect(res.statusCode).to.equal(500);
+                done();
+            });
+        });
+
+        it('returns listing html generated from context provided to listing function', (done) => {
+
+            const listingFn = (context, callback) => {
+
+                expect(context).to.have.include(['parentPath', 'location', 'files']);
+                callback(null, '<html>' + context.location + '</html>');
+            };
+
+            const server = provisionServer();
+            server.route({ method: 'GET', path: '/listingfn/{path*}', handler: { directory: { path: './', listing: listingFn } } });
+
+            server.inject('/listingfn/', (res) => {
+
+                expect(res.payload).to.equal('<html>/listingfn/</html>');
+                expect(res.statusCode).to.equal(200);
+                done();
+            });
+        });
+
         it('returns a 404 response when requesting a hidden file when showHidden is disabled', (done) => {
 
             const server = provisionServer();

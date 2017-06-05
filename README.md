@@ -236,9 +236,15 @@ object with the following options:
     if found in the folder when requesting a directory. The given string or strings specify
     the name(s) of the index file to look for. If `true`, looks for 'index.html'. Any falsy
     value disables index file lookup. Defaults to `true`.
-  - `listing` - optional boolean, determines if directory listing is generated when a
-    directory is requested without an index document.
-    Defaults to `false`.
+  - `listing` - optional boolean|function, determines if directory listing is generated when a
+    directory is requested without an index document. Defaults to `false`.
+    Value can be:
+      - a boolean, if true a default html template will be used
+      - a function with the signature `function(context, callback)`. Callback must be called
+        with `callback(err, renderedHtml)`. Context is an object that provides:
+          - `location` - a `string` value of current location
+          - `parentPath` - a `string` value of parent directory, `null` if none
+          - `files` - an `array` of files in the current location
   - `showHidden` - optional boolean, determines if hidden files will be shown and served.
     Defaults to `false`.
   - `redirectToSlash` - optional boolean, determines if requests for a directory without a
