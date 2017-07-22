@@ -3,24 +3,27 @@ language: node_js
 node_js:
   - "4"
   - "6"
-  - "7"
+  - "8"
   - "node"
 
 sudo: false
 
 env:
-    - HAPI_VERSION="@13"
-    - HAPI_VERSION="@14"
-    - HAPI_VERSION="@15"
     - HAPI_VERSION=""
 
 matrix:
-  exclude:
-  - node_js: "node"
+  include:
+  - node_js: "4"
     env: HAPI_VERSION="@13"
-  - node_js: "node"
+  - node_js: "4"
     env: HAPI_VERSION="@14"
-  - node_js: "node"
+  - node_js: "4"
+    env: HAPI_VERSION="@15"
+  - node_js: "6"
+    env: HAPI_VERSION="@13"
+  - node_js: "6"
+    env: HAPI_VERSION="@14"
+  - node_js: "6"
     env: HAPI_VERSION="@15"
 
 install:
