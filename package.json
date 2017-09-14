@@ -12,7 +12,7 @@
     "plugin"
   ],
   "engines": {
-    "node": ">=4.0.0"
+    "node": ">=8.0.0"
   },
   "dependencies": {
     "ammo": "2.x.x",
@@ -23,7 +23,7 @@
     "lru-cache": "4.1.x"
   },
   "devDependencies": {
-    "code": "4.x.x",
+    "code": "5.x.x",
     "hapi": "16.x.x",
     "lab": "14.x.x"
   },
