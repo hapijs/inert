@@ -1224,10 +1224,10 @@ describe('file', () => {
             Fs.writeFileSync(filename, 'data');
 
             const orig = InertFs.fstat;
-            InertFs.fstat = function (fd, callback) {        // can return EIO error
+            InertFs.fstat = function (fd) {        // can return EIO error
 
                 InertFs.fstat = orig;
-                callback(new Error('failed'));
+                throw new Error('failed');
             };
 
 
@@ -1250,8 +1250,7 @@ describe('file', () => {
             InertFs.open = function () {        // can return EMFILE error
 
                 InertFs.open = orig;
-                const callback = arguments[arguments.length - 1];
-                callback(new Error('failed'));
+                throw new Error('failed');
             };
 
             const server = provisionServer();
@@ -1287,26 +1286,25 @@ describe('file', () => {
             server.inject('/', (res1) => {
 
                 const orig = InertFs.open;
-                InertFs.open = function (path, mode, callback) {        // fake alternate permission error
+                InertFs.open = async function (path, mode) {        // fake alternate permission error
 
                     InertFs.open = orig;
                     didOpen = true;
 
-                    return InertFs.open(path, mode, (err, fd) => {
-
-                        if (err) {
-                            if (err.code === 'EACCES') {
-                                err.code = 'EPERM';
-                                err.errno = -1;
-                            }
-                            else if (err.code === 'EPERM') {
-                                err.code = 'EACCES';
-                                err.errno = -13;
-                            }
+                    try {
+                        return await InertFs.open(path, mode);
+                    }
+                    catch (err) {
+                        if (err.code === 'EACCES') {
+                            err.code = 'EPERM';
+                            err.errno = -1;
                         }
-
-                        return callback(err, fd);
-                    });
+                        else if (err.code === 'EPERM') {
+                            err.code = 'EACCES';
+                            err.errno = -13;
+                        }
+                        throw err;
+                    }
                 };
 
                 server.inject('/', (res2) => {
