@@ -259,3 +259,4 @@ object with the following options:
       - `false` - Disable ETag computation.
   - `defaultExtension` - optional string, appended to file requests if the requested file is
     not found. Defaults to no extension.
+  - `defaultFilePath` - optional string, which specifies the path of the file that should be served if the requested path does not exist. This is specially useful when serving web apps that use client side routing.

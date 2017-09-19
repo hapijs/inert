@@ -891,5 +891,31 @@ describe('directory', () => {
                 done();
             });
         });
+
+        it('returns the specified default file when requesting a non existent subpath', function (done) {
+
+            var server = provisionServer();
+            server.route({ method: 'GET', path: '/directory/{path*}', handler: { directory: { path: './', defaultFilePath: 'directory/index.html' } } });
+
+            server.inject('/directory/directory/some-path', function (res) {
+
+                expect(res.statusCode).to.equal(200);
+                expect(res.payload).to.contain('test');
+                done();
+            });
+        });
+
+        it('returns 404 if the specified default file does not exist when requesting a non existent subpath', function (done) {
+
+            var server = provisionServer();
+            server.route({ method: 'GET', path: '/directory/{path*}', handler: { directory: { path: './', defaultFilePath: 'directory/invalid.html' } } });
+
+            server.inject('/directory/directory/some-path', function (res) {
+
+                expect(res.statusCode).to.equal(404);
+                done();
+            });
+        });
+
     });
 });
