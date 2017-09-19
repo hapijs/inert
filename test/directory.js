@@ -10,6 +10,7 @@ const Code = require('code');
 const Hapi = require('hapi');
 const Hoek = require('hoek');
 const Inert = require('..');
+const InertFs = require('../lib/fs');
 const Lab = require('lab');
 
 
@@ -608,10 +609,10 @@ describe('directory', () => {
             const server = provisionServer();
             server.route({ method: 'GET', path: '/directorylist/{path*}', handler: { directory: { path: '../', listing: true } } });
 
-            const orig = Fs.readdir;
-            Fs.readdir = (path, callback) => {
+            const orig = InertFs.readdir;
+            InertFs.readdir = (path, callback) => {
 
-                Fs.readdir = orig;
+                InertFs.readdir = orig;
                 return callback(new Error('Simulated Directory Error'));
             };
 
@@ -838,10 +839,10 @@ describe('directory', () => {
 
         it('returns error when a file open fails', (done) => {
 
-            const orig = Fs.open;
-            Fs.open = function () {        // can return EMFILE error
+            const orig = InertFs.open;
+            InertFs.open = function () {        // can return EMFILE error
 
-                Fs.open = orig;
+                InertFs.open = orig;
                 const callback = arguments[arguments.length - 1];
                 callback(new Error('failed'));
             };
@@ -870,12 +871,12 @@ describe('directory', () => {
 
         it('only stats the file system once when requesting a file', (done) => {
 
-            const orig = Fs.fstat;
+            const orig = InertFs.fstat;
             let callCnt = 0;
-            Fs.fstat = function () {
+            InertFs.fstat = function () {
 
                 callCnt++;
-                return orig.apply(Fs, arguments);
+                return orig.apply(InertFs, arguments);
             };
 
             const server = provisionServer();
