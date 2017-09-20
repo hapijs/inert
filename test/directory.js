@@ -532,11 +532,10 @@ describe('directory', () => {
 
         it('resolves path name from plugin using specified path', async () => {
 
-            const plugin = (server, options, next) => {
+            const plugin = (server, options) => {
 
                 server.path(__dirname);
                 server.route({ method: 'GET', path: '/test/{path*}', config: { handler: { directory: { path: Path.join('.', 'directory'), index: false, listing: false } } } });
-                return next();
             };
             plugin.attributes = {
                 name: 'directory test',
@@ -552,10 +551,9 @@ describe('directory', () => {
 
         it('resolves path name from plugin using relative path', async () => {
 
-            const plugin = (server, options, next) => {
+            const plugin = (server, options) => {
 
                 server.route({ method: 'GET', path: '/test/{path*}', config: { handler: { directory: { path: Path.join('.', 'test', 'directory'), index: false, listing: false } } } });
-                return next();
             };
             plugin.attributes = {
                 name: 'directory test',
