@@ -971,7 +971,7 @@ describe('file', () => {
             server.ext('onPreResponse', (request, reply) => {
 
                 Fs.unlinkSync(filename);
-                return reply.continue();
+                return reply.continue;
             });
 
             const res = await server.inject('/');
@@ -1000,7 +1000,7 @@ describe('file', () => {
                     Fs.renameSync(tempfile, filename);
                 }
 
-                return reply.continue();
+                return reply.continue;
             });
 
             const res = await server.inject('/');
@@ -1026,7 +1026,7 @@ describe('file', () => {
                     throw new Error('not called');
                 };
 
-                return reply.continue();
+                return reply.continue;
             });
 
             const res = await server.inject({ url: '/file', headers: { 'if-modified-since': res1.headers.date } });
@@ -1042,7 +1042,7 @@ describe('file', () => {
             server.route({ method: 'GET', path: '/', handler: { file: { path: filename, confine: false } } });
             server.ext('onPreResponse', (request, reply) => {
 
-                reply(Boom.internal('crapping out'));
+                return reply(Boom.internal('crapping out'));
             });
 
             const res = await server.inject('/');
@@ -1321,7 +1321,7 @@ describe('file', () => {
                 server.ext('onPreResponse', (request, reply) => {
 
                     delete request.response.headers['content-length'];
-                    return reply.continue();
+                    return reply.continue;
                 });
 
                 const res = await server.inject({ url: '/file', headers: { 'range': 'bytes=1-5' } });
@@ -1384,7 +1384,7 @@ describe('file', () => {
                 server.ext('onPreResponse', (request, reply) => {
 
                     delete request.response.headers['content-type'];
-                    return reply.continue();
+                    return reply.continue;
                 });
 
                 const res = await server.inject({ url: '/file', headers: { 'range': 'bytes=1-5' } });
