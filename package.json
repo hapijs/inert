@@ -15,9 +15,9 @@
     "node": ">=8.0.0"
   },
   "dependencies": {
-    "ammo": "2.x.x",
-    "boom": "5.x.x",
-    "hoek": "4.x.x",
+    "ammo": "3.x.x",
+    "boom": "6.x.x",
+    "hoek": "5.x.x",
     "joi": "11.x.x",
     "lru-cache": "4.1.x"
   },
