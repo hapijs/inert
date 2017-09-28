@@ -2,7 +2,7 @@
 
 Static file and directory handlers plugin for hapi.js.
 
-[![Build Status](https://secure.travis-ci.org/hapijs/inert.png)](http://travis-ci.org/hapijs/inert)
+[![Build Status](https://secure.travis-ci.org/hapijs/inert.svg)](http://travis-ci.org/hapijs/inert)
 
 Lead Maintainer - [Gil Pedersen](https://github.com/kanongil)
 
@@ -44,38 +44,36 @@ const Hapi = require('hapi');
 const Inert = require('inert');
 
 const server = new Hapi.Server({
-    connections: {
-        routes: {
-            files: {
-                relativeTo: Path.join(__dirname, 'public')
+    port: 3000,
+    routes: {
+        files: {
+            relativeTo: Path.join(__dirname, 'public')
+        }
+    }
+});
+
+const provision = async () => {
+
+    await server.register(Inert);
+
+    server.route({
+        method: 'GET',
+        path: '/{param*}',
+        handler: {
+            directory: {
+                path: '.',
+                redirectToSlash: true,
+                index: true,
             }
         }
-    }
-});
-server.connection({ port: 3000 });
+    });
 
-server.register(Inert, () => {});
-
-server.route({
-    method: 'GET',
-    path: '/{param*}',
-    handler: {
-        directory: {
-            path: '.',
-            redirectToSlash: true,
-            index: true
-        }
-    }
-});
-
-server.start((err) => {
-
-    if (err) {
-        throw err;
-    }
+    await server.start();
 
     console.log('Server running at:', server.info.uri);
-});
+};
+
+provision();
 ```
 
 ### Serving a single file
@@ -100,7 +98,7 @@ If you need more control, the `reply.file()` method is available to use inside h
 server.route({
     method: 'GET',
     path: '/file',
-    handler: function (request, reply) {
+    handler(request, reply) {
 
         let path = 'plain.txt';
         if (request.headers['x-magic'] === 'sekret') {
@@ -111,7 +109,7 @@ server.route({
     }
 });
 
-server.ext('onPostHandler', function (request, reply) {
+server.ext('onPostHandler', (request, reply) => {
 
     const response = request.response;
     if (response.isBoom &&
@@ -120,7 +118,7 @@ server.ext('onPostHandler', function (request, reply) {
         return reply.file('404.html').code(404);
     }
 
-    return reply.continue();
+    return reply.continue;
 });
 ```
 
