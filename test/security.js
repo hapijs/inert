@@ -44,9 +44,9 @@ describe('security', () => {
 
     it('blocks path traversal to files outside of hosted directory is not allowed', async () => {
 
-        const forbidden = (request, reply) => {
+        const forbidden = (request, responder) => {
 
-            return reply().code(403);
+            return responder.wrap().code(403);
         };
 
         const server = await provisionServer();
@@ -116,12 +116,12 @@ describe('security', () => {
         expect(res.statusCode).to.equal(403);
     });
 
-    it('blocks access to files outside of base directory for reply.file()', async () => {
+    it('blocks access to files outside of base directory for responder.file()', async () => {
 
         const server = await provisionServer();
-        const fileHandler = (request, reply) => {
+        const fileHandler = (request, responder) => {
 
-            return reply.file(Path.join(__dirname, 'security.js'), { confine: Path.join(__dirname, 'directory') });
+            return responder.file(Path.join(__dirname, 'security.js'), { confine: Path.join(__dirname, 'directory') });
         };
 
         server.route({ method: 'GET', path: '/file', handler: fileHandler });
@@ -130,12 +130,12 @@ describe('security', () => {
         expect(res.statusCode).to.equal(403);
     });
 
-    it('blocks path traversal to files outside of base directory for reply.file()', async () => {
+    it('blocks path traversal to files outside of base directory for responder.file()', async () => {
 
         const server = await provisionServer();
-        const fileHandler = (request, reply) => {
+        const fileHandler = (request, responder) => {
 
-            return reply.file('../security.js', { confine: Path.join(__dirname, 'directory') });
+            return responder.file('../security.js', { confine: Path.join(__dirname, 'directory') });
         };
 
         server.route({ method: 'GET', path: '/file', handler: fileHandler });

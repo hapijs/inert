@@ -53,9 +53,9 @@ describe('directory', () => {
 
         it('returns a 403 when requesting a path containing \'..\'', async () => {
 
-            const forbidden = (request, reply) => {
+            const forbidden = (request, responder) => {
 
-                return reply().code(403);
+                return responder.wrap().code(403);
             };
 
             const server = await provisionServer();
@@ -468,10 +468,10 @@ describe('directory', () => {
             const server = await provisionServer(null, false);
             server.route({ method: 'GET', path: '/directory/{path*}', handler: { directory: { path: './' } } });
 
-            server.ext('onRequest', (request, reply) => {
+            server.ext('onRequest', (request, responder) => {
 
-                reply.state('bad', {});
-                return reply.continue();
+                responder.state('bad', {});
+                return responder.continue();
             });
 
             const res = await server.inject('/directory/file.js');
