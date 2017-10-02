@@ -634,6 +634,7 @@ describe('file', () => {
 
             const res = await server.inject('/file');
             expect(res.statusCode).to.equal(500);
+            expect(res.request.response._error).to.be.an.error(/^Failed to hash file/);
         });
 
         it('handles multiple simultaneous request hashing errors', async () => {
@@ -663,8 +664,10 @@ describe('file', () => {
 
             const res1 = await first;
             expect(res1.statusCode).to.equal(500);
+            expect(res1.request.response._error).to.be.an.error(/^Failed to hash file/);
             const res2 = await second;
             expect(res2.statusCode).to.equal(500);
+            expect(res2.request.response._error).to.be.an.error(/^Failed to hash file/);
         });
 
         it('returns valid http date responses in last-modified header', async () => {
@@ -1048,6 +1051,7 @@ describe('file', () => {
 
             const res = await server.inject('/');
             expect(res.statusCode).to.equal(500);
+            expect(res.request.response._error).to.be.an.error('crapping out');
         });
 
         it('returns error when stat fails unexpectedly', async () => {
@@ -1068,6 +1072,7 @@ describe('file', () => {
 
             const res = await server.inject('/');
             expect(res.statusCode).to.equal(500);
+            expect(res.request.response._error).to.be.an.error('Failed to stat file: failed');
         });
 
         it('returns error when open fails unexpectedly', async () => {
@@ -1087,6 +1092,7 @@ describe('file', () => {
 
             const res = await server.inject('/');
             expect(res.statusCode).to.equal(500);
+            expect(res.request.response._error).to.be.an.error('Failed to open file: failed');
         });
 
         it('returns a 403 when missing file read permission', async () => {
