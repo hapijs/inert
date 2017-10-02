@@ -35,7 +35,8 @@ describe('file', () => {
 
         const provisionServer = async (options, etagsCacheMaxSize) => {
 
-            const server = new Hapi.Server(options || {});
+            const defaults = { compression: { minBytes: 1 } };
+            const server = new Hapi.Server(Hoek.applyToDefaults(defaults, options || {}));
             await server.register(etagsCacheMaxSize !== undefined ? { register: Inert, options: { etagsCacheMaxSize } } : Inert);
             return server;
         };
