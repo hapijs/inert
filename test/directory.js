@@ -325,6 +325,7 @@ describe('directory', () => {
 
             const res = await server.inject('/directoryIndex/invalid/');
             expect(res.statusCode).to.equal(500);
+            expect(res.request.response._error).to.be.an.error('index.html is a directory');
         });
 
         it('returns a 500 when the custom index is a directory', async () => {
@@ -334,6 +335,7 @@ describe('directory', () => {
 
             const res = await server.inject('/directoryIndex/invalid/');
             expect(res.statusCode).to.equal(500);
+            expect(res.request.response._error).to.be.an.error('misc is a directory');
         });
 
         it('returns the correct file when using a fn directory handler', async () => {
@@ -471,11 +473,12 @@ describe('directory', () => {
             server.ext('onRequest', (request, responder) => {
 
                 responder.state('bad', {});
-                return responder.continue();
+                return responder.continue;
             });
 
             const res = await server.inject('/directory/file.js');
             expect(res.statusCode).to.equal(500);
+            expect(res.request.response._error).to.be.an.error(/^Invalid cookie value/);
         });
 
         it('returns error when listing fails due to directory read error', { parallel: false }, async () => {
@@ -484,14 +487,15 @@ describe('directory', () => {
             server.route({ method: 'GET', path: '/directorylist/{path*}', handler: { directory: { path: '../', listing: true } } });
 
             const orig = InertFs.readdir;
-            InertFs.readdir = (path, callback) => {
+            InertFs.readdir = (path) => {
 
                 InertFs.readdir = orig;
-                return callback(new Error('Simulated Directory Error'));
+                throw new Error('Simulated Directory Error');
             };
 
             const res = await server.inject('/directorylist/');
             expect(res.statusCode).to.equal(500);
+            expect(res.request.response._error).to.be.an.error('Error accessing directory: Simulated Directory Error');
         });
 
         it('appends default extension', async () => {
@@ -612,6 +616,7 @@ describe('directory', () => {
 
             const res = await server.inject('/test/index.html');
             expect(res.statusCode).to.equal(500);
+            expect(res.request.response._error).to.be.an.error('Invalid path function');
         });
 
         it('returns a gzipped file using precompressed file', async () => {
@@ -674,8 +679,7 @@ describe('directory', () => {
             InertFs.open = function () {        // can return EMFILE error
 
                 InertFs.open = orig;
-                const callback = arguments[arguments.length - 1];
-                callback(new Error('failed'));
+                throw new Error('failed');
             };
 
             const server = await provisionServer();
@@ -683,6 +687,7 @@ describe('directory', () => {
 
             const res = await server.inject('/test/fail');
             expect(res.statusCode).to.equal(500);
+            expect(res.request.response._error).to.be.an.error('Failed to open file: failed');
         });
 
         it('returns a 404 for null byte paths', async () => {
