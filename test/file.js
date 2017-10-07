@@ -44,9 +44,9 @@ describe('file', () => {
         it('returns a file in the response with the correct headers', async () => {
 
             const server = await provisionServer({ routes: { files: { relativeTo: __dirname } } });
-            const handler = (request, responder) => {
+            const handler = (request, h) => {
 
-                return responder.file('package.json', { confine: '../' }).code(499);
+                return h.file('package.json', { confine: '../' }).code(499);
             };
 
             server.route({ method: 'GET', path: '/file', handler });
@@ -62,9 +62,9 @@ describe('file', () => {
         it('returns a file using route relativeTo', async () => {
 
             const server = await provisionServer();
-            const handler = (request, responder) => {
+            const handler = (request, h) => {
 
-                return responder.file('../package.json', { confine: false });
+                return h.file('../package.json', { confine: false });
             };
 
             server.route({ method: 'GET', path: '/file', handler, config: { files: { relativeTo: __dirname } } });
@@ -156,9 +156,9 @@ describe('file', () => {
         it('returns a file with correct headers when using attachment mode', async () => {
 
             const server = await provisionServer({ routes: { files: { relativeTo: __dirname } } });
-            const handler = (request, responder) => {
+            const handler = (request, h) => {
 
-                return responder.file(Path.join(__dirname, '..', 'package.json'), { confine: '..', mode: 'attachment' });
+                return h.file(Path.join(__dirname, '..', 'package.json'), { confine: '..', mode: 'attachment' });
             };
 
             server.route({ method: 'GET', path: '/file', handler });
@@ -174,9 +174,9 @@ describe('file', () => {
         it('returns a file with correct headers when using attachment mode and overriding the filename', async () => {
 
             const server = await provisionServer({ routes: { files: { relativeTo: __dirname } } });
-            const handler = (request, responder) => {
+            const handler = (request, h) => {
 
-                return responder.file(Path.join(__dirname, '..', 'package.json'), { confine: '..', mode: 'attachment', filename: 'attachment.json' });
+                return h.file(Path.join(__dirname, '..', 'package.json'), { confine: '..', mode: 'attachment', filename: 'attachment.json' });
             };
 
             server.route({ method: 'GET', path: '/file', handler });
@@ -192,9 +192,9 @@ describe('file', () => {
         it('returns a file with correct headers when using inline mode', async () => {
 
             const server = await provisionServer({ routes: { files: { relativeTo: __dirname } } });
-            const handler = (request, responder) => {
+            const handler = (request, h) => {
 
-                return responder.file(Path.join(__dirname, '..', 'package.json'), { confine: '..', mode: 'inline' });
+                return h.file(Path.join(__dirname, '..', 'package.json'), { confine: '..', mode: 'inline' });
             };
 
             server.route({ method: 'GET', path: '/file', handler });
@@ -210,9 +210,9 @@ describe('file', () => {
         it('returns a file with correct headers when using inline mode and overriding filename', async () => {
 
             const server = await provisionServer({ routes: { files: { relativeTo: __dirname } } });
-            const handler = (request, responder) => {
+            const handler = (request, h) => {
 
-                return responder.file(Path.join(__dirname, '..', 'package.json'), { confine: '..', mode: 'inline', filename: 'attachment.json' });
+                return h.file(Path.join(__dirname, '..', 'package.json'), { confine: '..', mode: 'inline', filename: 'attachment.json' });
             };
 
             server.route({ method: 'GET', path: '/file', handler });
@@ -228,9 +228,9 @@ describe('file', () => {
         it('returns a partial file with the start option', async () => {
 
             const server = await provisionServer({ routes: { files: { relativeTo: __dirname } } });
-            const handler = (request, responder) => {
+            const handler = (request, h) => {
 
-                return responder.file(Path.join('file', 'note.txt'), { start: 2 });
+                return h.file(Path.join('file', 'note.txt'), { start: 2 });
             };
 
             server.route({ method: 'GET', path: '/file', handler });
@@ -245,9 +245,9 @@ describe('file', () => {
         it('returns a partial file with the start and end option', async () => {
 
             const server = await provisionServer({ routes: { files: { relativeTo: __dirname } } });
-            const handler = (request, responder) => {
+            const handler = (request, h) => {
 
-                return responder.file(Path.join('file', 'note.txt'), { start: 1, end: 2 });
+                return h.file(Path.join('file', 'note.txt'), { start: 1, end: 2 });
             };
 
             server.route({ method: 'GET', path: '/file', handler });
@@ -311,9 +311,9 @@ describe('file', () => {
         it('returns a file in the response with the correct headers (relative path)', async () => {
 
             const server = await provisionServer({ routes: { files: { relativeTo: '.' } } });
-            const relativeHandler = (request, responder) => {
+            const relativeHandler = (request, h) => {
 
-                return responder.file('./package.json', { confine: true });
+                return h.file('./package.json', { confine: true });
             };
 
             server.route({ method: 'GET', path: '/relativefile', handler: relativeHandler });
@@ -350,9 +350,9 @@ describe('file', () => {
         it('returns a file in the response with the correct headers using custom mime type', async () => {
 
             const server = await provisionServer({ routes: { files: { relativeTo: __dirname } } });
-            const handler = (request, responder) => {
+            const handler = (request, h) => {
 
-                return responder.file('../LICENSE', { confine: false }).type('application/example');
+                return h.file('../LICENSE', { confine: false }).type('application/example');
             };
 
             server.route({ method: 'GET', path: '/file', handler });
@@ -695,9 +695,9 @@ describe('file', () => {
             server.route({
                 method: 'GET',
                 path: '/',
-                handler: (request, responder) => {
+                handler: (request, h) => {
 
-                    return responder.wrap('ok').header('last-modified', 'some crap');
+                    return h.response('ok').header('last-modified', 'some crap');
                 }
             });
 
@@ -745,9 +745,9 @@ describe('file', () => {
             server.route({
                 method: 'GET',
                 path: '/file',
-                handler: (request, responder) => {
+                handler: (request, h) => {
 
-                    return responder.wrap(Fs.createReadStream(Path.join(__dirname, '..', 'package.json'))).header('etag', 'abc');
+                    return h.response(Fs.createReadStream(Path.join(__dirname, '..', 'package.json'))).header('etag', 'abc');
                 }
             });
 
@@ -783,9 +783,9 @@ describe('file', () => {
         it('returns a gzipped file in the response when the request accepts gzip', async () => {
 
             const server = await provisionServer({ routes: { files: { relativeTo: __dirname } } });
-            const handler = (request, responder) => {
+            const handler = (request, h) => {
 
-                return responder.file(Path.join(__dirname, '..', 'package.json'), { confine: '..' });
+                return h.file(Path.join(__dirname, '..', 'package.json'), { confine: '..' });
             };
 
             server.route({ method: 'GET', path: '/file', handler });
@@ -801,9 +801,9 @@ describe('file', () => {
         it('returns a plain file when not compressible', async () => {
 
             const server = await provisionServer({ routes: { files: { relativeTo: __dirname } } });
-            const handler = (request, responder) => {
+            const handler = (request, h) => {
 
-                return responder.file(Path.join(__dirname, 'file', 'image.png'));
+                return h.file(Path.join(__dirname, 'file', 'image.png'));
             };
 
             server.route({ method: 'GET', path: '/file', handler });
@@ -819,9 +819,9 @@ describe('file', () => {
         it('returns a deflated file in the response when the request accepts deflate', async () => {
 
             const server = await provisionServer({ routes: { files: { relativeTo: __dirname } } });
-            const handler = (request, responder) => {
+            const handler = (request, h) => {
 
-                return responder.file(Path.join(__dirname, '..', 'package.json'), { confine: '..' });
+                return h.file(Path.join(__dirname, '..', 'package.json'), { confine: '..' });
             };
 
             server.route({ method: 'GET', path: '/file', handler });
@@ -972,10 +972,10 @@ describe('file', () => {
 
             const server = await provisionServer();
             server.route({ method: 'GET', path: '/', handler: { file: { path: filename, confine: false } } });
-            server.ext('onPreResponse', (request, responder) => {
+            server.ext('onPreResponse', (request, h) => {
 
                 Fs.unlinkSync(filename);
-                return responder.continue;
+                return h.continue;
             });
 
             const res = await server.inject('/');
@@ -989,7 +989,7 @@ describe('file', () => {
 
             const server = await provisionServer();
             server.route({ method: 'GET', path: '/', handler: { file: { path: filename, confine: false } } });
-            server.ext('onPreResponse', (request, responder) => {
+            server.ext('onPreResponse', (request, h) => {
 
                 const tempfile = filename + '~';
                 if (process.platform === 'win32') {
@@ -1004,7 +1004,7 @@ describe('file', () => {
                     Fs.renameSync(tempfile, filename);
                 }
 
-                return responder.continue;
+                return h.continue;
             });
 
             const res = await server.inject('/');
@@ -1023,14 +1023,14 @@ describe('file', () => {
 
             const res1 = await server.inject('/file');
 
-            server.ext('onPreResponse', (request, responder) => {
+            server.ext('onPreResponse', (request, h) => {
 
                 request.response._marshall = () => {
 
                     throw new Error('not called');
                 };
 
-                return responder.continue;
+                return h.continue;
             });
 
             const res = await server.inject({ url: '/file', headers: { 'if-modified-since': res1.headers.date } });
@@ -1044,7 +1044,7 @@ describe('file', () => {
 
             const server = await provisionServer();
             server.route({ method: 'GET', path: '/', handler: { file: { path: filename, confine: false } } });
-            server.ext('onPreResponse', (request, responder) => {
+            server.ext('onPreResponse', (request, h) => {
 
                 throw Boom.internal('crapping out');
             });
@@ -1325,10 +1325,10 @@ describe('file', () => {
                 const server = await provisionServer();
                 server.route({ method: 'GET', path: '/file', handler: { file: { path: Path.join(__dirname, 'file/image.png') } } });
 
-                server.ext('onPreResponse', (request, responder) => {
+                server.ext('onPreResponse', (request, h) => {
 
                     delete request.response.headers['content-length'];
-                    return responder.continue;
+                    return h.continue;
                 });
 
                 const res = await server.inject({ url: '/file', headers: { 'range': 'bytes=1-5' } });
@@ -1388,10 +1388,10 @@ describe('file', () => {
                 const server = await provisionServer();
                 server.route({ method: 'GET', path: '/file', handler: { file: { path: Path.join(__dirname, 'file/note.txt') } } });
 
-                server.ext('onPreResponse', (request, responder) => {
+                server.ext('onPreResponse', (request, h) => {
 
                     delete request.response.headers['content-type'];
-                    return responder.continue;
+                    return h.continue;
                 });
 
                 const res = await server.inject({ url: '/file', headers: { 'range': 'bytes=1-5' } });
