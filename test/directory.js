@@ -536,18 +536,18 @@ describe('directory', () => {
 
         it('resolves path name from plugin using specified path', async () => {
 
-            const plugin = (server, options) => {
+            const plugin = {
+                register: (server, options) => {
 
-                server.path(__dirname);
-                server.route({ method: 'GET', path: '/test/{path*}', config: { handler: { directory: { path: Path.join('.', 'directory'), index: false, listing: false } } } });
-            };
-            plugin.attributes = {
+                    server.path(__dirname);
+                    server.route({ method: 'GET', path: '/test/{path*}', config: { handler: { directory: { path: Path.join('.', 'directory'), index: false, listing: false } } } });
+                },
                 name: 'directory test',
                 version: '1.0'
             };
 
             const server = await provisionServer({ router: { stripTrailingSlash: false } });
-            server.register({ register: plugin }, {}, () => { });
+            await server.register(plugin);
 
             const res = await server.inject('/test/index.html');
             expect(res.statusCode).to.equal(200);
@@ -555,17 +555,17 @@ describe('directory', () => {
 
         it('resolves path name from plugin using relative path', async () => {
 
-            const plugin = (server, options) => {
+            const plugin = {
+                register: (server, options) => {
 
-                server.route({ method: 'GET', path: '/test/{path*}', config: { handler: { directory: { path: Path.join('.', 'test', 'directory'), index: false, listing: false } } } });
-            };
-            plugin.attributes = {
+                    server.route({ method: 'GET', path: '/test/{path*}', config: { handler: { directory: { path: Path.join('.', 'test', 'directory'), index: false, listing: false } } } });
+                },
                 name: 'directory test',
                 version: '1.0'
             };
 
             const server = await provisionServer({ router: { stripTrailingSlash: false } });
-            server.register({ register: plugin }, {}, () => { });
+            await server.register(plugin);
 
             const res = await server.inject('/test/index.html');
             expect(res.statusCode).to.equal(200);
