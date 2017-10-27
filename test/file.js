@@ -24,8 +24,7 @@ const internals = {};
 // Test shortcuts
 
 const lab = exports.lab = Lab.script();
-const describe = lab.describe;
-const it = lab.it;
+const { describe, it } = lab;
 const expect = Code.expect;
 
 
@@ -35,9 +34,9 @@ describe('file', () => {
 
         const provisionServer = async (options, etagsCacheMaxSize) => {
 
-            const defaults = { compression: { minBytes: 1 } };
+            const defaults = { compression: { minBytes: 1 }, plugins: { inert: { etagsCacheMaxSize } } };
             const server = new Hapi.Server(Hoek.applyToDefaults(defaults, options || {}));
-            await server.register(etagsCacheMaxSize !== undefined ? { plugin: Inert, options: { etagsCacheMaxSize } } : Inert);
+            await server.register(Inert);
             return server;
         };
 
