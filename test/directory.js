@@ -117,6 +117,20 @@ describe('directory', () => {
             expect(res.payload).to.contain('name": "inert"');
         });
 
+        it('returns 404 when the a fn directory handler returns an empty array', async () => {
+
+            const directoryFn = (request) => {
+
+                return [];
+            };
+
+            const server = await provisionServer();
+            server.route({ method: 'GET', path: '/directoryfn/{path?}', handler: { directory: { path: directoryFn } } });
+
+            const res = await server.inject('/directoryfn/index.js');
+            expect(res.statusCode).to.equal(404);
+        });
+
         it('returns the correct file when requesting a file from a child directory', async () => {
 
             const server = await provisionServer();
@@ -523,6 +537,15 @@ describe('directory', () => {
 
             const res = await server.inject('/directory/directory/none');
             expect(res.statusCode).to.equal(404);
+        });
+
+        it('appends default extension and errors on file', async () => {
+
+            const server = await provisionServer();
+            server.route({ method: 'GET', path: '/directory/{path*}', handler: { directory: { path: __dirname, defaultExtension: 'dir' } } });
+
+            const res = await server.inject('/directory/directory/index');
+            expect(res.statusCode).to.equal(403);
         });
 
         it('does not append default extension when directory exists', async () => {
