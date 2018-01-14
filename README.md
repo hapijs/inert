@@ -29,6 +29,7 @@ file based resources.
       - [`h.file(path, [options])`](#hfilepath-options)
       - [The `file` handler](#the-file-handler)
       - [The `directory` handler](#the-directory-handler)
+      - [Errors](#errors)
 
 ## Examples
 
@@ -258,3 +259,16 @@ object with the following options:
       - `false` - Disable ETag computation.
   - `defaultExtension` - optional string, appended to file requests if the requested file is
     not found. Defaults to no extension.
+
+### Errors
+
+Any file access errors are signalled using appropriate [Boom](https://github.com/hapijs/boom)
+errors. These are `Boom.notFound()` for missing or hidden files, and `Boom.forbidden()` for
+files that exist, but can't otherwise be accessed.
+
+The error can contain an `err.data.path` property, which is the path that the error failed for.
+This property *does not always exist* if the response was generated without a file system lookup,
+and for the directory handler it will be the last tested non-index path.
+
+If an unexpected configuration or processing errors occurs, `Boom.internal()` and `'system'`
+errors can also be thrown.

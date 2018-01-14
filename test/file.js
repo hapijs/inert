@@ -260,12 +260,14 @@ describe('file', () => {
 
         it('returns a 404 when the file is not found', async () => {
 
-            const server = await provisionServer({ routes: { files: { relativeTo: '/no/such/path/x1' } } });
+            const basePath = Path.join(process.platform === 'win32' ? 'C://' : '/', 'no/such/path/x1');
+            const server = await provisionServer({ routes: { files: { relativeTo: basePath } } });
 
             server.route({ method: 'GET', path: '/filenotfound', handler: { file: 'nopes' } });
 
             const res = await server.inject('/filenotfound');
             expect(res.statusCode).to.equal(404);
+            expect(res.request.response._error.data.path).to.equal(Path.join(basePath, 'nopes'));
         });
 
         it('returns a 403 when the file is a directory', async () => {
@@ -276,6 +278,7 @@ describe('file', () => {
 
             const res = await server.inject('/filefolder');
             expect(res.statusCode).to.equal(403);
+            expect(res.request.response._error.data.path).to.equal(Path.join(__dirname, '..', 'lib'));
         });
 
         it('returns a file using the built-in handler config', async () => {
@@ -614,7 +617,8 @@ describe('file', () => {
         it('return a 500 on hashing errors', async () => {
 
             const server = await provisionServer();
-            server.route({ method: 'GET', path: '/file', handler: { file: Path.join(__dirname, '..', 'package.json') } });
+            const filepath = Path.join(__dirname, '..', 'package.json');
+            server.route({ method: 'GET', path: '/file', handler: { file: filepath } });
 
             // Prepare complicated mocking setup to fake an io error
 
@@ -634,6 +638,7 @@ describe('file', () => {
             const res = await server.inject('/file');
             expect(res.statusCode).to.equal(500);
             expect(res.request.response._error).to.be.an.error(/^Failed to hash file/);
+            expect(res.request.response._error.data.path).to.equal(filepath);
         });
 
         it('handles multiple simultaneous request hashing errors', async () => {
@@ -1072,6 +1077,7 @@ describe('file', () => {
             const res = await server.inject('/');
             expect(res.statusCode).to.equal(500);
             expect(res.request.response._error).to.be.an.error('Failed to stat file: failed');
+            expect(res.request.response._error.data.path).to.equal(filename);
         });
 
         it('returns error when open fails unexpectedly', async () => {
@@ -1092,6 +1098,7 @@ describe('file', () => {
             const res = await server.inject('/');
             expect(res.statusCode).to.equal(500);
             expect(res.request.response._error).to.be.an.error('Failed to open file: failed');
+            expect(res.request.response._error.data.path).to.equal(filename);
         });
 
         it('returns a 403 when missing file read permission', async () => {

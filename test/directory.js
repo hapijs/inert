@@ -49,13 +49,14 @@ describe('directory', () => {
 
             const res = await server.inject('/directory/');
             expect(res.statusCode).to.equal(403);
+            expect(res.request.response._error.data.path).to.equal(__dirname);
         });
 
         it('returns a 403 when requesting a path containing \'..\'', async () => {
 
             const forbidden = (request, h) => {
 
-                return h.response().code(403);
+                return Boom.forbidden(null, {});
             };
 
             const server = await provisionServer();
@@ -64,6 +65,7 @@ describe('directory', () => {
 
             const res = await server.inject('/directory/..');
             expect(res.statusCode).to.equal(403);
+            expect(res.request.response._error.data.path).to.not.exist();
         });
 
         it('returns a 404 when requesting an unknown file within a directory', async () => {
@@ -73,6 +75,7 @@ describe('directory', () => {
 
             const res = await server.inject('/directory/xyz');
             expect(res.statusCode).to.equal(404);
+            expect(res.request.response._error.data.path).to.equal(Path.join(__dirname, 'xyz'));
         });
 
         it('returns a file when requesting a file from the directory', async () => {
@@ -129,6 +132,7 @@ describe('directory', () => {
 
             const res = await server.inject('/directoryfn/index.js');
             expect(res.statusCode).to.equal(404);
+            expect(res.request.response._error.data.path).to.not.exist();
         });
 
         it('returns the correct file when requesting a file from a child directory', async () => {
@@ -218,6 +222,7 @@ describe('directory', () => {
 
             const res = await server.inject('/directoryx/');
             expect(res.statusCode).to.equal(403);
+            expect(res.request.response._error.data.path).to.equal(Path.join(__dirname, '..'));
         });
 
         it('returns a list of files when listing is enabled', async () => {
@@ -297,6 +302,7 @@ describe('directory', () => {
 
             const res = await server.inject('/directoryIndex/');
             expect(res.statusCode).to.equal(403);
+            expect(res.request.response._error.data.path).to.equal(Path.join(__dirname, 'directory'));
         });
 
         it('returns a 403 when listing is disabled and an array of index files is specified but none were found', async () => {
@@ -306,6 +312,7 @@ describe('directory', () => {
 
             const res = await server.inject('/directoryIndex/');
             expect(res.statusCode).to.equal(403);
+            expect(res.request.response._error.data.path).to.equal(Path.join(__dirname, 'directory'));
         });
 
         it('returns the index when served from a hidden folder', async () => {
@@ -537,6 +544,7 @@ describe('directory', () => {
 
             const res = await server.inject('/directory/directory/none');
             expect(res.statusCode).to.equal(404);
+            expect(res.request.response._error.data.path).to.equal(Path.join(__dirname, 'directory/none.html'));
         });
 
         it('appends default extension and errors on file', async () => {
@@ -546,6 +554,7 @@ describe('directory', () => {
 
             const res = await server.inject('/directory/directory/index');
             expect(res.statusCode).to.equal(403);
+            expect(res.request.response._error.data.path).to.equal(Path.join(__dirname, 'directory/index.dir'));
         });
 
         it('does not append default extension when directory exists', async () => {
@@ -694,6 +703,7 @@ describe('directory', () => {
             }
 
             expect(res.statusCode).to.equal(403);
+            expect(res.request.response._error.data.path).to.equal(filename);
         });
 
         it('returns error when a file open fails', async () => {
@@ -720,6 +730,7 @@ describe('directory', () => {
 
             const res = await server.inject('/index%00.html');
             expect(res.statusCode).to.equal(404);
+            expect(res.request.response._error.data.path).to.equal(Path.join(__dirname, 'index\u0000.html'));
         });
 
         it('only stats the file system once when requesting a file', async () => {
