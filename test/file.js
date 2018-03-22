@@ -1491,5 +1491,23 @@ describe('file', () => {
                 cmd.stdin.end();
             });
         });
+
+        it('returns a custom headers to file handler responses', async () => {
+
+            const server = await provisionServer();
+            server.route({
+                method: 'GET',
+                path: '/file',
+                handler: {
+                    file: {
+                        path: Path.join(__dirname, 'file/image.png'),
+                        additionalHeaders: { 'custom-header': 'value' }
+                    }
+                }
+            });
+
+            const res = await server.inject('/file');
+            expect(res.headers['custom-header']).to.equal('value');
+        });
     });
 });
