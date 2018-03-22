@@ -211,7 +211,7 @@ Generates a static file endpoint for serving a single file. `file` can be set to
           - `false` - Disable ETag computation.
       - `start` - offset in file to reading from, defaults to 0.
       - `end` - offset in file to stop reading from. If not set, will read to end of file.
-
+      - `additionalHeaders` - an `object` which specifies the additional response headers.
 ### The `directory` handler
 
 Generates a directory endpoint for serving static content from a directory.
@@ -259,7 +259,7 @@ object with the following options:
       - `false` - Disable ETag computation.
   - `defaultExtension` - optional string, appended to file requests if the requested file is
     not found. Defaults to no extension.
-
+  - `additionalHeaders` - optional object which specifies the additional response headers.
 ### Errors
 
 Any file access errors are signalled using appropriate [Boom](https://github.com/hapijs/boom)
