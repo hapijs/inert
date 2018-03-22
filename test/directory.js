@@ -752,5 +752,23 @@ describe('directory', () => {
             expect(res.statusCode).to.equal(200);
             expect(res.payload).to.contain('hapi');
         });
+
+        it('returns a custom headers to directory handler responses', async () => {
+
+            const server = await provisionServer();
+            server.route({
+                method: 'GET',
+                path: '/{path*}',
+                handler: {
+                    directory: {
+                        path: Path.join(__dirname, './directory/'),
+                        additionalHeaders: { 'custom-header': 'value' }
+                    }
+                }
+            });
+
+            const res = await server.inject('/index.html');
+            expect(res.headers['custom-header']).to.equal('value');
+        });
     });
 });
