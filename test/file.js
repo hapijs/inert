@@ -441,7 +441,7 @@ describe('file', () => {
             expect(res2.headers).to.include('last-modified');
 
             const fd1 = Fs.openSync(Path.join(__dirname, 'file', 'note.txt'), 'w');
-            Fs.writeSync(fd1, new Buffer('Test'), 0, 4);
+            Fs.writeSync(fd1, Buffer.from('Test'), 0, 4);
             Fs.closeSync(fd1);
 
             // etag after file modified, content unchanged
@@ -455,7 +455,7 @@ describe('file', () => {
             expect(etag1).to.not.equal(etag2);
 
             const fd2 = Fs.openSync(Path.join(__dirname, 'file', 'note.txt'), 'w');
-            Fs.writeSync(fd2, new Buffer('Test1'), 0, 5);
+            Fs.writeSync(fd2, Buffer.from('Test1'), 0, 5);
             Fs.closeSync(fd2);
 
             // etag after file modified, content changed
@@ -471,7 +471,7 @@ describe('file', () => {
             expect(etag2).to.not.equal(etag3);
 
             const fd3 = Fs.openSync(Path.join(__dirname, 'file', 'note.txt'), 'w');
-            Fs.writeSync(fd3, new Buffer('Test'), 0, 4);
+            Fs.writeSync(fd3, Buffer.from('Test'), 0, 4);
             Fs.closeSync(fd3);
         });
 
@@ -502,7 +502,7 @@ describe('file', () => {
 
             Fs.unlinkSync(Path.join(__dirname, 'file', 'note.txt'));
             const fd1 = Fs.openSync(Path.join(__dirname, 'file', 'note.txt'), 'w');
-            Fs.writeSync(fd1, new Buffer('Test'), 0, 4);
+            Fs.writeSync(fd1, Buffer.from('Test'), 0, 4);
             Fs.closeSync(fd1);
 
             // etag after file modified, content unchanged
@@ -516,7 +516,7 @@ describe('file', () => {
             expect(etag1).to.equal(etag2);
 
             const fd2 = Fs.openSync(Path.join(__dirname, 'file', 'note.txt'), 'w');
-            Fs.writeSync(fd2, new Buffer('Test1'), 0, 5);
+            Fs.writeSync(fd2, Buffer.from('Test1'), 0, 5);
             Fs.closeSync(fd2);
 
             // etag after file modified, content changed
@@ -530,7 +530,7 @@ describe('file', () => {
             expect(etag1).to.not.equal(etag3);
 
             const fd3 = Fs.openSync(Path.join(__dirname, 'file', 'note.txt'), 'w');
-            Fs.writeSync(fd3, new Buffer('Test'), 0, 4);
+            Fs.writeSync(fd3, Buffer.from('Test'), 0, 4);
             Fs.closeSync(fd3);
 
             // etag, content restored
@@ -1141,6 +1141,7 @@ describe('file', () => {
                         err.code = 'EACCES';
                         err.errno = -13;
                     }
+
                     throw err;
                 }
             };
@@ -1172,7 +1173,7 @@ describe('file', () => {
                 expect(res.headers['content-length']).to.equal(5);
                 expect(res.headers['content-range']).to.equal('bytes 0-4/42010');
                 expect(res.headers['accept-ranges']).to.equal('bytes');
-                expect(res.rawPayload).to.equal(new Buffer('\x89PNG\r', 'ascii'));
+                expect(res.rawPayload).to.equal(Buffer.from('\x89PNG\r', 'ascii'));
             });
 
             it('returns a subset of a file (middle)', async () => {
@@ -1185,7 +1186,7 @@ describe('file', () => {
                 expect(res.headers['content-length']).to.equal(5);
                 expect(res.headers['content-range']).to.equal('bytes 1-5/42010');
                 expect(res.headers['accept-ranges']).to.equal('bytes');
-                expect(res.rawPayload).to.equal(new Buffer('PNG\r\n', 'ascii'));
+                expect(res.rawPayload).to.equal(Buffer.from('PNG\r\n', 'ascii'));
             });
 
             it('returns a subset of a file (-to)', async () => {
@@ -1198,7 +1199,7 @@ describe('file', () => {
                 expect(res.headers['content-length']).to.equal(5);
                 expect(res.headers['content-range']).to.equal('bytes 42005-42009/42010');
                 expect(res.headers['accept-ranges']).to.equal('bytes');
-                expect(res.rawPayload).to.equal(new Buffer('D\xAEB\x60\x82', 'ascii'));
+                expect(res.rawPayload).to.equal(Buffer.from('D\xAEB\x60\x82', 'ascii'));
             });
 
             it('returns a subset of a file (from-)', async () => {
@@ -1211,7 +1212,7 @@ describe('file', () => {
                 expect(res.headers['content-length']).to.equal(5);
                 expect(res.headers['content-range']).to.equal('bytes 42005-42009/42010');
                 expect(res.headers['accept-ranges']).to.equal('bytes');
-                expect(res.rawPayload).to.equal(new Buffer('D\xAEB\x60\x82', 'ascii'));
+                expect(res.rawPayload).to.equal(Buffer.from('D\xAEB\x60\x82', 'ascii'));
             });
 
             it('returns a subset of a file (beyond end)', async () => {
@@ -1224,7 +1225,7 @@ describe('file', () => {
                 expect(res.headers['content-length']).to.equal(5);
                 expect(res.headers['content-range']).to.equal('bytes 42005-42009/42010');
                 expect(res.headers['accept-ranges']).to.equal('bytes');
-                expect(res.rawPayload).to.equal(new Buffer('D\xAEB\x60\x82', 'ascii'));
+                expect(res.rawPayload).to.equal(Buffer.from('D\xAEB\x60\x82', 'ascii'));
             });
 
             it('returns a subset of a file (if-range)', async () => {
@@ -1238,7 +1239,7 @@ describe('file', () => {
                 expect(res2.headers['content-length']).to.equal(5);
                 expect(res2.headers['content-range']).to.equal('bytes 42005-42009/42010');
                 expect(res2.headers['accept-ranges']).to.equal('bytes');
-                expect(res2.rawPayload).to.equal(new Buffer('D\xAEB\x60\x82', 'ascii'));
+                expect(res2.rawPayload).to.equal(Buffer.from('D\xAEB\x60\x82', 'ascii'));
             });
 
             it('returns 200 on incorrect if-range', async () => {
@@ -1322,7 +1323,7 @@ describe('file', () => {
                 expect(res.headers['content-length']).to.equal(4);
                 expect(res.headers['content-range']).to.equal('bytes 1-4/42010');
                 expect(res.headers['accept-ranges']).to.equal('bytes');
-                expect(res.rawPayload).to.equal(new Buffer('PNG\r', 'ascii'));
+                expect(res.rawPayload).to.equal(Buffer.from('PNG\r', 'ascii'));
                 expect(createOptions).to.include({ start: 1, end: 4 });
             });
 
@@ -1439,7 +1440,7 @@ describe('file', () => {
                 expect(res.headers['content-length']).to.equal(2);
                 expect(res.headers['content-range']).to.equal('bytes 2-3/42009');
                 expect(res.headers['accept-ranges']).to.equal('bytes');
-                expect(res.rawPayload).to.equal(new Buffer('G\r', 'ascii'));
+                expect(res.rawPayload).to.equal(Buffer.from('G\r', 'ascii'));
             });
 
             it('returns a subset of a file with start and end option', async () => {
@@ -1460,7 +1461,7 @@ describe('file', () => {
                 expect(res.headers['content-length']).to.equal(3);
                 expect(res.headers['content-range']).to.equal('bytes 0-2/399');
                 expect(res.headers['accept-ranges']).to.equal('bytes');
-                expect(res.rawPayload).to.equal(new Buffer('NG\r', 'ascii'));
+                expect(res.rawPayload).to.equal(Buffer.from('NG\r', 'ascii'));
             });
         });
 

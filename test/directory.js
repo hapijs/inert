@@ -737,10 +737,10 @@ describe('directory', () => {
 
             const orig = InertFs.fstat;
             let callCnt = 0;
-            InertFs.fstat = function () {
+            InertFs.fstat = function (...args) {
 
                 callCnt++;
-                return orig.apply(InertFs, arguments);
+                return orig.apply(InertFs, args);
             };
 
             const server = await provisionServer();
