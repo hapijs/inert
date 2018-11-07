@@ -1,7 +1,5 @@
 'use strict';
 
-// Load modules
-
 const Fs = require('fs');
 const Os = require('os');
 const Path = require('path');
@@ -15,12 +13,8 @@ const InertFs = require('../lib/fs');
 const Lab = require('lab');
 
 
-// Declare internals
-
 const internals = {};
 
-
-// Test shortcuts
 
 const lab = exports.lab = Lab.script();
 const describe = lab.describe;

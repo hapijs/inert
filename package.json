@@ -11,12 +11,6 @@
     "hapi",
     "plugin"
   ],
-  "engines": {
-    "node": ">=8.9.0"
-  },
-  "peerDependencies": {
-    "hapi": ">=17.0.0"
-  },
   "dependencies": {
     "ammo": "3.x.x",
     "boom": "7.x.x",

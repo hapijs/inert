@@ -1,7 +1,5 @@
 'use strict';
 
-// Load modules
-
 const ChildProcess = require('child_process');
 const Fs = require('fs');
 const Os = require('os');
@@ -16,12 +14,8 @@ const InertFs = require('../lib/fs');
 const Lab = require('lab');
 
 
-// Declare internals
-
 const internals = {};
 
-
-// Test shortcuts
 
 const lab = exports.lab = Lab.script();
 const { describe, it } = lab;
@@ -305,7 +299,7 @@ describe('file', () => {
 
             const res = await server.inject('/filefn/index.js');
             expect(res.statusCode).to.equal(200);
-            expect(res.payload).to.contain('// Load modules');
+            expect(res.payload).to.contain('Set correct confine value');
             expect(res.headers['content-type']).to.equal('application/javascript; charset=utf-8');
             expect(res.headers['content-length']).to.exist();
         });

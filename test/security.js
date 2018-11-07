@@ -1,7 +1,5 @@
 'use strict';
 
-// Load modules
-
 const Path = require('path');
 
 const Code = require('code');
@@ -11,12 +9,8 @@ const Inert = require('..');
 const Lab = require('lab');
 
 
-// Declare internals
-
 const internals = {};
 
-
-// Test shortcuts
 
 const lab = exports.lab = Lab.script();
 const describe = lab.describe;
