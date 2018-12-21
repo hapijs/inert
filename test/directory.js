@@ -159,6 +159,25 @@ describe('directory', () => {
             expect(res.payload).to.not.contain('//');
         });
 
+        it('does contain / for sub path listing when stripTrailingSlash is true', async () => {
+
+            const server = await provisionServer({ router: { stripTrailingSlash: true } });
+
+            server.route({ method: 'GET',
+                path: '/showindex/{path*}',
+                handler: {
+                    directory: {
+                        path: './',
+                        listing: true
+                    }
+                }
+            });
+
+            const res = await server.inject('/showindex/');
+            expect(res.statusCode).to.equal(200);
+            expect(res.payload).to.contain('href="/showindex/package.json"');
+        });
+
         it('has the correct link to sub folders when inside of a sub folder listing', async () => {
 
             const server = await provisionServer();
