@@ -625,6 +625,15 @@ describe('directory', () => {
             expect(res.statusCode).to.equal(200);
         });
 
+        it('resolves relative pathnames from relative relativeTo', async () => {
+
+            const server = await provisionServer({ routes: { files: { relativeTo: './test' } }, router: { stripTrailingSlash: false } });
+            server.route({ method: 'GET', path: '/test/{path*}', handler: { directory: { path: Path.join('.', 'directory') } } });
+
+            const res = await server.inject('/test/index.html');
+            expect(res.statusCode).to.equal(200);
+        });
+
         it('returns error when path function returns error', async () => {
 
             const path = () => {
