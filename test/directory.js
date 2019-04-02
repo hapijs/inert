@@ -149,6 +149,16 @@ describe('directory', () => {
             expect(res.payload).to.contain('href="/file.js"');
         });
 
+        it('returns the correct listing links when redirectToSlash is disabled', async () => {
+
+            const server = await provisionServer();
+            server.route({ method: 'GET', path: '/base/{path*}', handler: { directory: { path: '.', index: false, listing: true, redirectToSlash: false } } });
+
+            const res = await server.inject('/base');
+            expect(res.statusCode).to.equal(200);
+            expect(res.payload).to.contain('href="/base/file.js"');
+        });
+
         it('does not contain any double / when viewing sub path listing', async () => {
 
             const server = await provisionServer();
