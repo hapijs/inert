@@ -1,10 +1,16 @@
 {
   "name": "@hapi/inert",
   "description": "Static file and directory handlers plugin for hapi.js",
-  "version": "5.1.3",
+  "version": "5.2.0",
   "repository": "https://github.com/hapijs/inert.git",
   "main": "lib/index.js",
-  "keywords": ["file", "directory", "handler", "hapi", "plugin"],
+  "keywords": [
+    "file",
+    "directory",
+    "handler",
+    "hapi",
+    "plugin"
+  ],
   "dependencies": {
     "@hapi/ammo": "3.x.x",
     "@hapi/boom": "7.x.x",
