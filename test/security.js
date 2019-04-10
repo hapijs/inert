@@ -2,11 +2,11 @@
 
 const Path = require('path');
 
-const Code = require('code');
-const Hapi = require('hapi');
-const Hoek = require('hoek');
+const Code = require('@hapi/code');
+const Hapi = require('@hapi/hapi');
+const Hoek = require('@hapi/hoek');
 const Inert = require('..');
-const Lab = require('lab');
+const Lab = require('@hapi/lab');
 
 
 const internals = {};

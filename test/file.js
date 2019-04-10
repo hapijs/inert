@@ -5,13 +5,14 @@ const Fs = require('fs');
 const Os = require('os');
 const Path = require('path');
 
-const Boom = require('boom');
-const Code = require('code');
-const Hapi = require('hapi');
-const Hoek = require('hoek');
+const Boom = require('@hapi/boom');
+const Code = require('@hapi/code');
+const Hapi = require('@hapi/hapi');
+const Hoek = require('@hapi/hoek');
 const Inert = require('..');
+const Lab = require('@hapi/lab');
+
 const InertFs = require('../lib/fs');
-const Lab = require('lab');
 
 
 const internals = {};
@@ -336,7 +337,7 @@ describe('file', () => {
         it('returns a file with default mime type', async () => {
 
             const server = await provisionServer();
-            server.route({ method: 'GET', path: '/', handler: { file: Path.join(__dirname, '..', 'LICENSE') } });
+            server.route({ method: 'GET', path: '/', handler: { file: Path.join(__dirname, 'file', 'FILE') } });
 
             const res = await server.inject('/');
             expect(res.statusCode).to.equal(200);
@@ -348,7 +349,7 @@ describe('file', () => {
             const server = await provisionServer({ routes: { files: { relativeTo: __dirname } } });
             const handler = (request, h) => {
 
-                return h.file('../LICENSE', { confine: false }).type('application/example');
+                return h.file('../LICENSE.md', { confine: false }).type('application/example');
             };
 
             server.route({ method: 'GET', path: '/file', handler });

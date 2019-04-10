@@ -4,13 +4,14 @@ const Fs = require('fs');
 const Os = require('os');
 const Path = require('path');
 
-const Boom = require('boom');
-const Code = require('code');
-const Hapi = require('hapi');
-const Hoek = require('hoek');
+const Boom = require('@hapi/boom');
+const Code = require('@hapi/code');
+const Hapi = require('@hapi/hapi');
+const Hoek = require('@hapi/hoek');
 const Inert = require('..');
+const Lab = require('@hapi/lab');
+
 const InertFs = require('../lib/fs');
-const Lab = require('lab');
 
 
 const internals = {};
@@ -89,7 +90,7 @@ describe('directory', () => {
 
             const res = await server.inject('/multiple/package.json');
             expect(res.statusCode).to.equal(200);
-            expect(res.payload).to.contain('name": "inert"');
+            expect(res.payload).to.contain('name": "@hapi/inert"');
         });
 
         it('returns a file when requesting a file from multi directory function response', async () => {
@@ -111,7 +112,7 @@ describe('directory', () => {
 
             const res = await server.inject('/multiple/package.json');
             expect(res.statusCode).to.equal(200);
-            expect(res.payload).to.contain('name": "inert"');
+            expect(res.payload).to.contain('name": "@hapi/inert"');
         });
 
         it('returns 404 when the a fn directory handler returns an empty array', async () => {

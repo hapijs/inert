@@ -4,8 +4,6 @@ Static file and directory handlers plugin for hapi.js.
 
 [![Build Status](https://secure.travis-ci.org/hapijs/inert.svg)](http://travis-ci.org/hapijs/inert)
 
-Lead Maintainer - [Gil Pedersen](https://github.com/kanongil)
-
 **inert** provides new [handler](https://github.com/hapijs/hapi/blob/master/API.md#serverhandlername-method)
 methods for serving static files and directories, as well as adding a `h.file()` method to the
 [toolkit](https://github.com/hapijs/hapi/blob/master/API.md#response-toolkit), which can respond with
@@ -42,8 +40,8 @@ The following creates a basic static file server that can be used to serve html 
 
 ```js
 const Path = require('path');
-const Hapi = require('hapi');
-const Inert = require('inert');
+const Hapi = require('@hapi/hapi');
+const Inert = require('@hapi/inert');
 
 const server = new Hapi.Server({
     port: 3000,
