@@ -6,14 +6,17 @@ node_js:
   - "11"
   - "node"
 
-env:
-    - HAPI_VERSION=""
-
-matrix:
-  include:
-  - node_js: "8"
-    env: HAPI_VERSION="@17"
+sudo: false
 
 install:
-    - npm install
-    - npm install hapi$HAPI_VERSION
+  - "npm install"
+  - "npm install hapi@$HAPI_VERSION"
+
+env:
+  - HAPI_VERSION="17"
+  - HAPI_VERSION="18"
+
+os:
+  - "linux"
+  - "osx"
+  - "windows"
