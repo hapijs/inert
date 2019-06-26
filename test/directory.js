@@ -6,8 +6,8 @@ const Path = require('path');
 
 const Boom = require('@hapi/boom');
 const Code = require('@hapi/code');
+const File = require('@hapi/file');
 const Hapi = require('@hapi/hapi');
-const Hoek = require('@hapi/hoek');
 const Inert = require('..');
 const Lab = require('@hapi/lab');
 
@@ -690,7 +690,7 @@ describe('directory', () => {
 
         it('returns a 403 when missing file read permission', async () => {
 
-            const filename = Hoek.uniqueFilename(Os.tmpdir());
+            const filename = File.uniqueFilename(Os.tmpdir());
             Fs.writeFileSync(filename, 'data');
 
             let fd;

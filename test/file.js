@@ -7,6 +7,7 @@ const Path = require('path');
 
 const Boom = require('@hapi/boom');
 const Code = require('@hapi/code');
+const File = require('@hapi/file');
 const Hapi = require('@hapi/hapi');
 const Hoek = require('@hapi/hoek');
 const Inert = require('..');
@@ -966,7 +967,7 @@ describe('file', () => {
 
         it('responds correctly when file is removed while processing', async () => {
 
-            const filename = Hoek.uniqueFilename(Os.tmpdir()) + '.package.json';
+            const filename = File.uniqueFilename(Os.tmpdir()) + '.package.json';
             Fs.writeFileSync(filename, 'data');
 
             const server = await provisionServer();
@@ -983,7 +984,7 @@ describe('file', () => {
 
         it('responds correctly when file is changed while processing', async () => {
 
-            const filename = Hoek.uniqueFilename(Os.tmpdir()) + '.package.json';
+            const filename = File.uniqueFilename(Os.tmpdir()) + '.package.json';
             Fs.writeFileSync(filename, 'data');
 
             const server = await provisionServer();
@@ -1038,7 +1039,7 @@ describe('file', () => {
 
         it('returns error when aborted while processing', async () => {
 
-            const filename = Hoek.uniqueFilename(Os.tmpdir()) + '.package.json';
+            const filename = File.uniqueFilename(Os.tmpdir()) + '.package.json';
             Fs.writeFileSync(filename, 'data');
 
             const server = await provisionServer();
@@ -1055,7 +1056,7 @@ describe('file', () => {
 
         it('returns error when stat fails unexpectedly', async () => {
 
-            const filename = Hoek.uniqueFilename(Os.tmpdir()) + '.package.json';
+            const filename = File.uniqueFilename(Os.tmpdir()) + '.package.json';
             Fs.writeFileSync(filename, 'data');
 
             const orig = InertFs.fstat;
@@ -1077,7 +1078,7 @@ describe('file', () => {
 
         it('returns error when open fails unexpectedly', async () => {
 
-            const filename = Hoek.uniqueFilename(Os.tmpdir()) + '.package.json';
+            const filename = File.uniqueFilename(Os.tmpdir()) + '.package.json';
             Fs.writeFileSync(filename, 'data');
 
             const orig = InertFs.open;
@@ -1098,7 +1099,7 @@ describe('file', () => {
 
         it('returns a 403 when missing file read permission', async () => {
 
-            const filename = Hoek.uniqueFilename(Os.tmpdir()) + '.package.json';
+            const filename = File.uniqueFilename(Os.tmpdir()) + '.package.json';
             Fs.writeFileSync(filename, 'data');
 
             let retainedFd;
