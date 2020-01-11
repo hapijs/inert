@@ -341,7 +341,7 @@ describe('file', () => {
             server.route({ method: 'GET', path: '/', handler: { file: Path.join(__dirname, 'file', 'FILE') } });
 
             const res = await server.inject('/');
-            expect(res.statusCode).to.equal(200);
+            expect(res.statusCode).to.equal(204);
             expect(res.headers['content-type']).to.equal('application/octet-stream');
         });
 
