@@ -25,7 +25,7 @@
   "devDependencies": {
     "@hapi/code": "8.x.x",
     "@hapi/file": "2.x.x",
-    "@hapi/hapi": "18.x.x",
+    "@hapi/hapi": "19.x.x",
     "@hapi/lab": "22.x.x"
   },
   "scripts": {
