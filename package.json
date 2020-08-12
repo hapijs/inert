@@ -20,7 +20,7 @@
     "@hapi/bounce": "2.x.x",
     "@hapi/hoek": "9.x.x",
     "@hapi/validate": "1.x.x",
-    "lru-cache": "5.x.x"
+    "lru-cache": "^6.0.0"
   },
   "devDependencies": {
     "@hapi/code": "8.x.x",
