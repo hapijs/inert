@@ -14,6 +14,11 @@
     "hapi",
     "plugin"
   ],
+  "eslintConfig": {
+    "extends": [
+      "plugin:@hapi/module"
+    ]
+  },
   "dependencies": {
     "@hapi/ammo": "5.x.x",
     "@hapi/boom": "9.x.x",
@@ -24,6 +29,7 @@
   },
   "devDependencies": {
     "@hapi/code": "8.x.x",
+    "@hapi/eslint-plugin": "*",
     "@hapi/file": "2.x.x",
     "@hapi/hapi": "20.x.x",
     "@hapi/lab": "24.x.x"
