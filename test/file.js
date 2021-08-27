@@ -1,6 +1,7 @@
 'use strict';
 
 const ChildProcess = require('child_process');
+const Events = require('events');
 const Fs = require('fs');
 const Os = require('os');
 const Path = require('path');
@@ -741,7 +742,9 @@ describe('file', () => {
 
         it('closes file handlers when not using a manually open file stream', { skip: process.platform === 'win32' }, async () => {
 
-            const server = await provisionServer();
+            // This test doesn't rely on inert but is a fair test of hapi's handling of (file) streams
+            const server = Hapi.server();
+
             server.route({
                 method: 'GET',
                 path: '/file',
@@ -754,6 +757,14 @@ describe('file', () => {
             const res1 = await server.inject('/file');
             const res2 = await server.inject({ url: '/file', headers: { 'if-none-match': res1.headers.etag } });
             expect(res2.statusCode).to.equal(304);
+
+            const file1 = res1.request.response.source;
+            const file2 = res2.request.response.source;
+
+            await Promise.all([
+                file1.closed || Events.once(file1, 'close'),
+                file2.closed || Events.once(file2, 'close')
+            ]);
 
             await new Promise((resolve) => {
 
@@ -1459,6 +1470,36 @@ describe('file', () => {
                 expect(res.headers['accept-ranges']).to.equal('bytes');
                 expect(res.rawPayload).to.equal(Buffer.from('NG\r', 'ascii'));
             });
+        });
+
+        it('permits duplicate closes', async () => {
+
+            const server = await provisionServer();
+
+            server.route({
+                method: 'GET',
+                path: '/file',
+                handler: { file: Path.join(__dirname, '..', 'package.json') },
+                options: {
+                    ext: {
+                        onPostHandler: {
+                            method: ({ response }) => {
+
+                                // In practice the framework does not call close() twice,
+                                // but inert assumes it may happen, so we simulate it here
+                                response._processors.close(response);
+
+                                // Reassigning a new response causes a second close() by hapi
+                                return { reassigned: true };
+                            }
+                        }
+                    }
+                }
+            });
+
+            const res = await server.inject('/file');
+
+            expect(res.result).to.equal({ reassigned: true });
         });
 
         it('has not leaked file descriptors', { skip: process.platform === 'win32' }, async () => {
