@@ -1461,6 +1461,36 @@ describe('file', () => {
             });
         });
 
+        it('permits duplicate closes', async () => {
+
+            const server = await provisionServer();
+
+            server.route({
+                method: 'GET',
+                path: '/file',
+                handler: { file: Path.join(__dirname, '..', 'package.json') },
+                options: {
+                    ext: {
+                        onPostHandler: {
+                            method: ({ response }) => {
+
+                                // In practice the framework does not call close() twice,
+                                // but inert assumes it may happen, so we simulate it here
+                                response._processors.close(response);
+
+                                // Reassigning a new response causes a second close() by hapi
+                                return { reassigned: true };
+                            }
+                        }
+                    }
+                }
+            });
+
+            const res = await server.inject('/file');
+
+            expect(res.result).to.equal({ reassigned: true });
+        });
+
         it('has not leaked file descriptors', { skip: process.platform === 'win32' }, async () => {
 
             // validate that all descriptors has been closed
