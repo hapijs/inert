@@ -1,6 +1,7 @@
 'use strict';
 
 const ChildProcess = require('child_process');
+const Events = require('events');
 const Fs = require('fs');
 const Os = require('os');
 const Path = require('path');
@@ -741,7 +742,9 @@ describe('file', () => {
 
         it('closes file handlers when not using a manually open file stream', { skip: process.platform === 'win32' }, async () => {
 
-            const server = await provisionServer();
+            // This test doesn't rely on inert, but is a fair test of hapi's handling of (file) streams
+            const server = Hapi.server();
+
             server.route({
                 method: 'GET',
                 path: '/file',
@@ -755,6 +758,14 @@ describe('file', () => {
             const res2 = await server.inject({ url: '/file', headers: { 'if-none-match': res1.headers.etag } });
             expect(res2.statusCode).to.equal(304);
 
+            const file1 = res1.request.response.source;
+            const file2 = res2.request.response.source;
+
+            await Promise.all([
+                file1.closed || Events.once(file1, 'close'),
+                file2.closed || Events.once(file2, 'close')
+            ]);
+
             await new Promise((resolve) => {
 
                 const cmd = ChildProcess.spawn('lsof', ['-p', process.pid]);
@@ -765,8 +776,6 @@ describe('file', () => {
                 });
 
                 cmd.stdout.on('end', () => {
-
-                    console.log(lsof); // Want to see why this check is flaky on OSX in CI
 
                     let count = 0;
                     const lines = lsof.split('\n');
