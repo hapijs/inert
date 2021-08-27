@@ -766,6 +766,8 @@ describe('file', () => {
 
                 cmd.stdout.on('end', () => {
 
+                    console.log(lsof); // Want to see why this check is flaky on OSX in CI
+
                     let count = 0;
                     const lines = lsof.split('\n');
                     for (let i = 0; i < lines.length; ++i) {
