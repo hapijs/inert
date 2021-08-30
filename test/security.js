@@ -87,6 +87,32 @@ describe('security', () => {
         expect(res.statusCode).to.equal(404);
     });
 
+    it('blocks absolute paths at top level path', async () => {
+
+        const server = await provisionServer();
+        server.route({ method: 'GET', path: '/{path*}', handler: { directory: { path: './' } } });
+
+        // Confirm success with relative path
+        const resRel = await server.inject('/directory.js');
+        expect(resRel.statusCode).to.equal(200);
+
+        const resAbs = await server.inject(`/${require.resolve('./directory.js')}`);
+        expect(resAbs.statusCode).to.equal(404);
+    });
+
+    it('blocks absolute paths non-top level path', async () => {
+
+        const server = await provisionServer();
+        server.route({ method: 'GET', path: '/directory/{path*}', handler: { directory: { path: './' } } });
+
+        // Confirm success with relative path
+        const resRel = await server.inject('/directory/directory.js');
+        expect(resRel.statusCode).to.equal(200);
+
+        const resAbs = await server.inject(`/directory/${require.resolve('./directory.js')}`);
+        expect(resAbs.statusCode).to.equal(404);
+    });
+
     it('blocks access to files outside of base directory for file handler', async () => {
 
         const server = await provisionServer();
