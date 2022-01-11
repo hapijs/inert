@@ -80,7 +80,7 @@ describe('directory', () => {
 
             const res = await server.inject('/directory/directory.js/xyz');
             expect(res.statusCode).to.equal(404);
-            expect(res.request.response._error.data.path).to.equal(Path.join(__dirname, 'xyz'));
+            expect(res.request.response._error.data.path).to.equal(Path.join(__dirname, 'directory.js', 'xyz'));
         });
 
         it('returns a file when requesting a file from the directory', async () => {
