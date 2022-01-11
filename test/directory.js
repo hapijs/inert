@@ -73,6 +73,16 @@ describe('directory', () => {
             expect(res.request.response._error.data.path).to.equal(Path.join(__dirname, 'xyz'));
         });
 
+        it('returns a 404 when requesting an unknown file when part of the path matches a filename', async () => {
+
+            const server = await provisionServer();
+            server.route({ method: 'GET', path: '/directory/{path*}', handler: { directory: { path: './' } } });
+
+            const res = await server.inject('/directory/directory.js/xyz');
+            expect(res.statusCode).to.equal(404);
+            expect(res.request.response._error.data.path).to.equal(Path.join(__dirname, 'xyz'));
+        });
+
         it('returns a file when requesting a file from the directory', async () => {
 
             const server = await provisionServer();
