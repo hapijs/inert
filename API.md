@@ -24,6 +24,8 @@ The following creates a basic static file server that can be used to serve html 
 const Path = require('path');
 const Hapi = require('@hapi/hapi');
 const Inert = require('@hapi/inert');
+// In ESM, may import as:
+// import { inertPlugin } from '@hapi/inert';
 
 const server = new Hapi.Server({
     port: 3000,
