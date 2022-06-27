@@ -10,6 +10,6 @@ on:
 jobs:
   test:
     uses: hapijs/.github/.github/workflows/ci-plugin.yml@workflow-min-hapi-version
-      with:
-        min-node-version: 14
-        min-hapi-version: 20
+    with:
+      min-node-version: 14
+      min-hapi-version: 20
