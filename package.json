@@ -31,7 +31,7 @@
     "@hapi/code": "^9.0.0",
     "@hapi/eslint-plugin": "^6.0.0",
     "@hapi/file": "^3.0.0",
-    "@hapi/hapi": "21.0.0-beta.0",
+    "@hapi/hapi": "21.0.0-beta.1",
     "@hapi/lab": "^25.0.1"
   },
   "scripts": {

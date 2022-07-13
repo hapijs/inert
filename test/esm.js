@@ -21,7 +21,6 @@ describe('import()', () => {
 
         expect(Object.keys(Inert)).to.equal([
             'default',
-            'inertPlugin',
             'plugin'
         ]);
     });
