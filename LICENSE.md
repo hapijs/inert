@@ -1,6 +1,7 @@
-Copyright (c) 2012-2020, Sideway Inc, and project contributors  
-Copyright (c) 2014-2019, Gil Pedersen  
-Copyright (c) 2012-2014, Walmart.  
+Copyright (c) 2012-2022, Project contributors
+Copyright (c) 2012-2020, Sideway Inc
+Copyright (c) 2014-2019, Gil Pedersen
+Copyright (c) 2012-2014, Walmart.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
