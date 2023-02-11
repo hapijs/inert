@@ -20,19 +20,19 @@
     ]
   },
   "dependencies": {
-    "@hapi/ammo": "^6.0.0",
-    "@hapi/boom": "^10.0.0",
-    "@hapi/bounce": "^3.0.0",
-    "@hapi/hoek": "^10.0.0",
-    "@hapi/validate": "^2.0.0",
-    "lru-cache": "^7.10.2"
+    "@hapi/ammo": "^6.0.1",
+    "@hapi/boom": "^10.0.1",
+    "@hapi/bounce": "^3.0.1",
+    "@hapi/hoek": "^11.0.2",
+    "@hapi/validate": "^2.0.1",
+    "lru-cache": "^7.14.1"
   },
   "devDependencies": {
-    "@hapi/code": "^9.0.0",
-    "@hapi/eslint-plugin": "^6.0.0",
+    "@hapi/code": "^9.0.3",
+    "@hapi/eslint-plugin": "*",
     "@hapi/file": "^3.0.0",
-    "@hapi/hapi": "21.0.0-beta.1",
-    "@hapi/lab": "^25.0.1"
+    "@hapi/hapi": "^21.2.1",
+    "@hapi/lab": "^25.1.2"
   },
   "scripts": {
     "test": "lab -f -a @hapi/code -t 100 -L",
