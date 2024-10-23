@@ -30,10 +30,10 @@
   },
   "devDependencies": {
     "@hapi/code": "^9.0.3",
-    "@hapi/eslint-plugin": "*",
+    "@hapi/eslint-plugin": "^7.0.0",
     "@hapi/file": "^3.0.0",
     "@hapi/hapi": "^21.3.0",
-    "@hapi/lab": "^25.1.2",
+    "@hapi/lab": "^26.0.0",
     "@types/node": "^14.18.37",
     "joi": "^17.8.3",
     "typescript": "^4.9.5"
