@@ -303,7 +303,7 @@ describe('file', () => {
             const res = await server.inject('/filefn/index.js');
             expect(res.statusCode).to.equal(200);
             expect(res.payload).to.contain('Set correct confine value');
-            expect(res.headers['content-type']).to.equal('application/javascript; charset=utf-8');
+            expect(res.headers['content-type']).to.equal('text/javascript; charset=utf-8');
             expect(res.headers['content-length']).to.exist();
         });
 
