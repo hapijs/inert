@@ -797,19 +797,28 @@ describe('directory', () => {
 
         it('only stats the file system once when requesting a file', async () => {
 
-            const orig = InertFs.fstat;
             let callCnt = 0;
-            InertFs.fstat = function (...args) {
 
-                callCnt++;
-                return orig.apply(InertFs, args);
+            const origOpen = InertFs.open;
+            InertFs.open = async function (...openArgs) {
+
+                const handle = await origOpen.call(this, ...openArgs);
+                const origStat = handle.stat;
+
+                handle.stat = function (...args) {
+
+                    callCnt++;
+                    return origStat.call(this, ...args);
+                };
+
+                return handle;
             };
 
             const server = await provisionServer();
             server.route({ method: 'GET', path: '/directory/{path*}', handler: { directory: { path: './' } } });
 
             const res = await server.inject('/directory/directory.js');
-            Fs.fstat = orig;
+            InertFs.open = origOpen;
             expect(callCnt).to.equal(1);
             expect(res.statusCode).to.equal(200);
             expect(res.payload).to.contain('hapi');
