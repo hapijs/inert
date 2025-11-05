@@ -25,6 +25,31 @@ const { describe, it } = lab;
 const expect = Code.expect;
 
 
+internals.mockNextInertFs = function (method, handler) {
+
+    const origOpen = InertFs.open;
+    InertFs.open = async function (...openArgs) {
+
+        InertFs.open = origOpen;
+
+        if (method === 'open') {
+            return handler.call(this, origOpen.bind(this), ...openArgs);
+        }
+
+        const handle = await origOpen.call(this, ...openArgs);
+
+        const origMethod = handle[method];
+        handle[method] = function (...args) {
+
+            handle[method] = origMethod;
+            return handler.call(this, origMethod.bind(this), ...args);
+        };
+
+        return handle;
+    };
+};
+
+
 describe('file', () => {
 
     describe('handler()', () => {
@@ -303,7 +328,7 @@ describe('file', () => {
             const res = await server.inject('/filefn/index.js');
             expect(res.statusCode).to.equal(200);
             expect(res.payload).to.contain('Set correct confine value');
-            expect(res.headers['content-type']).to.equal('application/javascript; charset=utf-8');
+            expect(res.headers['content-type']).to.equal('text/javascript; charset=utf-8');
             expect(res.headers['content-length']).to.exist();
         });
 
@@ -617,20 +642,14 @@ describe('file', () => {
             const filepath = Path.join(__dirname, '..', 'package.json');
             server.route({ method: 'GET', path: '/file', handler: { file: filepath } });
 
-            // Prepare complicated mocking setup to fake an io error
+            // Prepare mocking setup to fake an io error
 
-            const orig = InertFs.createReadStream;
-            InertFs.createReadStream = function (path, options) {
+            internals.mockNextInertFs('createReadStream', function (orig, options) {
 
-                InertFs.createReadStream = orig;
+                process.nextTick(Fs.closeSync, this.fd);
 
-                process.nextTick(() => {
-
-                    Fs.closeSync(options.fd);
-                });
-
-                return InertFs.createReadStream(path, options);
-            };
+                return orig(options);
+            });
 
             const res = await server.inject('/file');
             expect(res.statusCode).to.equal(500);
@@ -643,20 +662,14 @@ describe('file', () => {
             const server = await provisionServer();
             server.route({ method: 'GET', path: '/file', handler: { file: Path.join(__dirname, '..', 'package.json') } });
 
-            // Prepare complicated mocking setup to fake an io error
+            // Prepare mocking setup to fake an io error
 
-            const orig = InertFs.createReadStream;
-            InertFs.createReadStream = function (path, options) {
+            internals.mockNextInertFs('createReadStream', function (orig, options) {
 
-                InertFs.createReadStream = orig;
+                process.nextTick(Fs.closeSync, this.fd);
 
-                process.nextTick(() => {
-
-                    Fs.closeSync(options.fd);
-                });
-
-                return InertFs.createReadStream(path, options);
-            };
+                return orig(options);
+            });
 
             const first = server.inject('/file');
             const second = server.inject('/file');
@@ -1070,13 +1083,10 @@ describe('file', () => {
             const filename = File.uniqueFilename(Os.tmpdir()) + '.package.json';
             Fs.writeFileSync(filename, 'data');
 
-            const orig = InertFs.fstat;
-            InertFs.fstat = function (fd) {        // can return EIO error
+            internals.mockNextInertFs('stat', (orig) => {        // can return EIO error
 
-                InertFs.fstat = orig;
                 throw new Error('failed');
-            };
-
+            });
 
             const server = await provisionServer();
             server.route({ method: 'GET', path: '/', handler: { file: { path: filename, confine: false } } });
@@ -1092,12 +1102,10 @@ describe('file', () => {
             const filename = File.uniqueFilename(Os.tmpdir()) + '.package.json';
             Fs.writeFileSync(filename, 'data');
 
-            const orig = InertFs.open;
-            InertFs.open = function () {        // can return EMFILE error
+            internals.mockNextInertFs('open', () => {        // can return EMFILE error
 
-                InertFs.open = orig;
                 throw new Error('failed');
-            };
+            });
 
             const server = await provisionServer();
             server.route({ method: 'GET', path: '/', handler: { file: { path: filename, confine: false } } });
@@ -1130,14 +1138,12 @@ describe('file', () => {
             let didOpen = false;
             const res1 = await server.inject('/');
 
-            const orig = InertFs.open;
-            InertFs.open = async function (path, mode) {        // fake alternate permission error
+            internals.mockNextInertFs('open', async (orig, path, mode) => {        // fake alternate permission error
 
-                InertFs.open = orig;
                 didOpen = true;
 
                 try {
-                    return await InertFs.open(path, mode);
+                    return await orig(path, mode);
                 }
                 catch (err) {
                     if (err.code === 'EACCES') {
@@ -1151,7 +1157,7 @@ describe('file', () => {
 
                     throw err;
                 }
-            };
+            });
 
             const res2 = await server.inject('/');
 
@@ -1316,14 +1322,11 @@ describe('file', () => {
                 // Catch createReadStream options
 
                 let createOptions;
-                const orig = InertFs.createReadStream;
-                InertFs.createReadStream = function (path, options) {
+                internals.mockNextInertFs('createReadStream', (orig, options) => {
 
-                    InertFs.createReadStream = orig;
                     createOptions = options;
-
-                    return InertFs.createReadStream(path, options);
-                };
+                    return orig(options);
+                });
 
                 const res = await server.inject({ url: '/file', headers: { 'range': 'bytes=1-4', 'accept-encoding': 'gzip' } });
                 expect(res.statusCode).to.equal(206);
