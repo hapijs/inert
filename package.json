@@ -26,7 +26,7 @@
     "@hapi/bounce": "^3.0.1",
     "@hapi/hoek": "^11.0.2",
     "@hapi/validate": "^2.0.1",
-    "lru-cache": "^7.14.1"
+    "lru-cache": "^11.2.2"
   },
   "devDependencies": {
     "@hapi/code": "^9.0.3",
@@ -34,9 +34,9 @@
     "@hapi/file": "^3.0.0",
     "@hapi/hapi": "^21.3.0",
     "@hapi/lab": "^26.0.0",
-    "@types/node": "^14.18.37",
-    "joi": "^17.8.3",
-    "typescript": "^4.9.5"
+    "@types/node": "^20.19.24",
+    "joi": "^18.0.1",
+    "typescript": "~5.9.3"
   },
   "scripts": {
     "test": "lab -f -a @hapi/code -t 100 -L -Y",
