@@ -163,4 +163,46 @@ describe('security', () => {
         const res = await server.inject('/file');
         expect(res.statusCode).to.equal(403);
     });
+
+    it('blocks sibling-prefix path traversal in directory handler', async () => {
+
+        // 'directory-secret/' is a sibling of the served 'directory/'. Its absolute
+        // path begins with the same string as the confine dir, so a raw string-prefix
+        // check treats it as confined.
+
+        const server = await provisionServer();
+        server.route({ method: 'GET', path: '/{path*}', handler: { directory: { path: './directory' } } });
+
+        const res = await server.inject('/..%2fdirectory-secret/secret.txt');
+        expect(res.statusCode).to.equal(403);
+    });
+
+    it('blocks sibling-prefix path traversal for h.file() with default confine', async () => {
+
+        const server = new Hapi.Server({ routes: { files: { relativeTo: Path.join(__dirname, 'directory') } } });
+        await server.register(Inert);
+
+        const fileHandler = (request, h) => {
+
+            return h.file('../directory-secret/secret.txt');     // confine defaults to true
+        };
+
+        server.route({ method: 'GET', path: '/file', handler: fileHandler });
+
+        const res = await server.inject('/file');
+        expect(res.statusCode).to.equal(403);
+    });
+
+    it('blocks sibling-prefix path traversal for file handler with explicit confine', async () => {
+
+        const server = await provisionServer();
+        server.route({
+            method: 'GET',
+            path: '/file',
+            handler: { file: { confine: './directory', path: '../directory-secret/secret.txt' } }
+        });
+
+        const res = await server.inject('/file');
+        expect(res.statusCode).to.equal(403);
+    });
 });
