@@ -278,6 +278,38 @@ describe('file', () => {
             expect(res.request.response._error.data.path).to.equal(Path.join(__dirname, '..', 'lib'));
         });
 
+        it('returns a 403 when the file is not a regular file (eg. device)', { skip: process.platform === 'win32' }, async () => {
+
+            const filename = '/dev/null';        // a character device, not a regular file
+
+            const server = await provisionServer();
+            server.route({ method: 'GET', path: '/', handler: { file: { path: filename, confine: false } } });
+
+            const res = await server.inject('/');
+
+            expect(res.statusCode).to.equal(403);
+            expect(res.request.response._error.data.code).to.equal('EINVAL');
+            expect(res.request.response._error.data.path).to.equal(filename);
+        });
+
+        it('returns a file through a symbolic link', { skip: process.platform === 'win32' }, async () => {
+
+            const link = File.uniqueFilename(Os.tmpdir()) + '.package.json';
+            Fs.symlinkSync(Path.join(__dirname, '..', 'package.json'), link);
+
+            const server = await provisionServer();
+            server.route({ method: 'GET', path: '/', handler: { file: { path: link, confine: false } } });
+
+            const res = await server.inject('/');
+
+            Fs.unlinkSync(link);
+
+            expect(res.statusCode).to.equal(200);
+            expect(res.payload).to.contain('hapi');
+            expect(res.headers['content-type']).to.equal('application/json; charset=utf-8');
+            expect(res.headers['content-length']).to.exist();
+        });
+
         it('returns a file using the built-in handler config', async () => {
 
             const server = await provisionServer({ routes: { files: { relativeTo: Path.join(__dirname, '..') } } });
