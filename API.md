@@ -240,6 +240,20 @@ object with the following options:
   - `defaultExtension` - optional string, appended to file requests if the requested file is
     not found. Defaults to no extension.
 
+Requests where the path parameter contains an encoded path separator (`%2F` and, on Windows,
+`%5C` or `\`) are rejected with `404 Not Found`. The router doesn't treat those as segment
+boundaries, but the file system does, so they could otherwise reach a file meant to be served
+by another route.
+
+When several routes with different settings (e.g. `auth`) serve overlapping parts of the same
+directory, the route is selected by the router while the file is resolved by the file system,
+and both must agree on what a path means. On a case-insensitive file system (the default on
+macOS and Windows), a request for `/PRIVATE/file.txt` doesn't match a `/private/{path*}` route
+with the default case-sensitive router, but still resolves to `private/file.txt`. Set the
+server [`router.isCaseSensitive`](https://github.com/hapijs/hapi/blob/master/API.md#server.options.router)
+option to `false` in that case, or better, serve the protected content from a directory that
+isn't nested inside a publicly served one.
+
 ### Errors
 
 Any file access errors are signalled using appropriate [Boom](https://github.com/hapijs/boom)
